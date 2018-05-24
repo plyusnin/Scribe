@@ -9,7 +9,7 @@
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         mc:Ignorable="d"
         SnapsToDevicePixels="True" TextOptions.TextFormattingMode="Display" UseLayoutRounding="True"
-        Title="Scribe" d:DataContext="{d:DesignInstance viewModel:MainViewModel}">
+        Title="The Scribe" d:DataContext="{d:DesignInstance viewModel:MainViewModel}">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
