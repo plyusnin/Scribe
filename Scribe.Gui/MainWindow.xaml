@@ -4,9 +4,18 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Scribe.Gui"
+        xmlns:viewModel="clr-namespace:Scribe.Gui.ViewModel"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800" d:DataContext="{d:DesignInstance viewModel:MainViewModel}">
     <Grid>
-        
+        <ListView ItemsSource="{Binding Records}" FontFamily="Consolas">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Время" DisplayMemberBinding="{Binding Time, StringFormat='HH:mm:ss.fff'}" />
+                    <GridViewColumn Header="Источник" DisplayMemberBinding="{Binding Source}" />
+                    <GridViewColumn Header="Сообщение" DisplayMemberBinding="{Binding Message}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
     </Grid>
 </Window>
