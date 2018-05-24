@@ -5,17 +5,68 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Scribe.Gui"
         xmlns:viewModel="clr-namespace:Scribe.Gui.ViewModel"
+        xmlns:reactiveUi="clr-namespace:ReactiveUI;assembly=ReactiveUI"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" d:DataContext="{d:DesignInstance viewModel:MainViewModel}">
+        SnapsToDevicePixels="True" TextOptions.TextFormattingMode="Display" UseLayoutRounding="True"
+        Title="Scribe" d:DataContext="{d:DesignInstance viewModel:MainViewModel}">
     <Grid>
-        <ListView ItemsSource="{Binding Records}" FontFamily="Consolas">
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn Header="Время" DisplayMemberBinding="{Binding Time, StringFormat='HH:mm:ss.fff'}" />
-                    <GridViewColumn Header="Источник" DisplayMemberBinding="{Binding Source}" />
-                    <GridViewColumn Header="Сообщение" DisplayMemberBinding="{Binding Message}" />
-                </GridView>
-            </ListView.View>
-        </ListView>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Name="Toolbar">
+            <ToggleButton Margin="2" Padding="15,3" Name="AutoscrollSwitch" Content="Автоскролл" IsChecked="True" />
+        </StackPanel>
+        <Grid Grid.Row="1" Margin="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="280" />
+            </Grid.ColumnDefinitions>
+            <ListView Grid.Column="0" ItemsSource="{Binding Records}" FontFamily="Consolas">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Время" DisplayMemberBinding="{Binding Time, StringFormat='HH:mm:ss.fff'}" />
+                        <GridViewColumn Header="Источник" DisplayMemberBinding="{Binding Source}" />
+                        <GridViewColumn Header="Сообщение" DisplayMemberBinding="{Binding Message}" />
+                    </GridView>
+                </ListView.View>
+                <i:Interaction.Behaviors>
+                    <local:AutoScrollBehavior IsActive="{Binding ElementName=AutoscrollSwitch, Path=IsChecked}" />
+                    <local:MultiSelectionBehavior SelectedItems="{Binding SelectedRecords}" />
+                </i:Interaction.Behaviors>
+            </ListView>
+            <GridSplitter Grid.Column="1" ResizeDirection="Columns" Width="2" ResizeBehavior="PreviousAndNext" />
+            <ListView Grid.Column="2" ItemsSource="{Binding Sources}" FontFamily="Consolas">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn>
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding IsSelected}" />
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Источник" DisplayMemberBinding="{Binding Name}" />
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </Grid>
+        <StatusBar Grid.Row="2">
+            <StatusBarItem>
+                <TextBlock>
+                    <Run Text="Выбрано:" />
+                    <Run Text="{Binding SelectedRecords.Count, Mode=OneWay}" FontWeight="SemiBold" />
+                </TextBlock>
+            </StatusBarItem>
+            <StatusBarItem>
+                <TextBlock>
+                    <Run Text="Интервал:" />
+                    <Run Text="{Binding SelectedInterval, Mode=OneWay}" FontWeight="SemiBold" />
+                </TextBlock>
+            </StatusBarItem>
+        </StatusBar>
     </Grid>
 </Window>
