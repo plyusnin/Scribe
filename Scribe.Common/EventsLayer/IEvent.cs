@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Scribe
+namespace Scribe.EventsLayer
 {
     public interface IEvent
     {

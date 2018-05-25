@@ -7,7 +7,7 @@
     <ProjectGuid>{A1EFBCA5-AD6E-45B3-9E3D-A69D0753A3B1}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>Scribe.Gui</RootNamespace>
-    <AssemblyName>Scribe.Gui</AssemblyName>
+    <AssemblyName>Scribe</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -89,11 +89,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="AutoScrollBehavior.cs" />
-    <Compile Include="MultiSelectionBehavior.cs" />
-    <Compile Include="NLogRecordsSource.cs" />
-    <Compile Include="ViewModel\IRecordsSource.cs" />
-    <Compile Include="ViewModel\LogRecord.cs" />
+    <Compile Include="Behaviors\AutoScrollBehavior.cs" />
+    <Compile Include="Converters\ColorIndexToBrushConverter.cs" />
+    <Compile Include="Behaviors\MultiSelectionBehavior.cs" />
+    <Compile Include="ViewModel\LogRecordViewModel.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
     <Compile Include="ViewModel\SourceViewModel.cs" />
     <Page Include="MainWindow.xaml">

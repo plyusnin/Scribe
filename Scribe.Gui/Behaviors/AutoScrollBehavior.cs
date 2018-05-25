@@ -8,7 +8,7 @@ using System.Windows.Interactivity;
 using System.Windows.Media;
 using System.Windows.Threading;
 
-namespace Scribe.Gui
+namespace Scribe.Gui.Behaviors
 {
     public class AutoScrollBehavior : Behavior<ListView>
     {

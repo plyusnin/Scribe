@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Scribe
+namespace Scribe.EventsLayer.NLog
 {
     public class NLogEvent : IEvent
     {

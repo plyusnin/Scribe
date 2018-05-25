@@ -4,7 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interactivity;
 
-namespace Scribe.Gui
+namespace Scribe.Gui.Behaviors
 {
     public class MultiSelectionBehavior : Behavior<ListBox>
     {

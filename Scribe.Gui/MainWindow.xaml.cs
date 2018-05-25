@@ -1,5 +1,7 @@
 ﻿using System.Windows;
+using Scribe.EventsLayer.NLog;
 using Scribe.Gui.ViewModel;
+using Scribe.RecordsLayer;
 
 namespace Scribe.Gui
 {
@@ -9,7 +11,7 @@ namespace Scribe.Gui
         public MainWindow()
         {
             InitializeComponent();
-            DataContext = new MainViewModel(new NLogRecordsSource(new UdpLogSource()));
+            DataContext = new MainViewModel(new NLogRecordsSource(new UdpNLogSource()));
         }
     }
 }

@@ -7,9 +7,30 @@
         xmlns:viewModel="clr-namespace:Scribe.Gui.ViewModel"
         xmlns:reactiveUi="clr-namespace:ReactiveUI;assembly=ReactiveUI"
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+        xmlns:converters="clr-namespace:Scribe.Gui.Converters"
+        xmlns:behaviors="clr-namespace:Scribe.Gui.Behaviors"
         mc:Ignorable="d"
         SnapsToDevicePixels="True" TextOptions.TextFormattingMode="Display" UseLayoutRounding="True"
         Title="The Scribe" d:DataContext="{d:DesignInstance viewModel:MainViewModel}">
+    <Window.Resources>
+        <ResourceDictionary>
+            <converters:ColorIndexToBrushConverter x:Key="ColorConverter">
+                <converters:ColorIndexToBrushConverter.Brushes>
+                    <SolidColorBrush Color="RoyalBlue" />
+                    <SolidColorBrush Color="OrangeRed" />
+                    <SolidColorBrush Color="ForestGreen" />
+                    <SolidColorBrush Color="Gray" />
+                    <SolidColorBrush Color="DarkViolet" />
+                    <SolidColorBrush Color="DarkOrange" />
+                    <SolidColorBrush Color="Goldenrod" />
+                    <SolidColorBrush Color="OliveDrab" />
+                    <SolidColorBrush Color="Fuchsia" />
+                    <SolidColorBrush Color="SaddleBrown" />
+                    <SolidColorBrush Color="LightSlateGray" />
+                </converters:ColorIndexToBrushConverter.Brushes>
+            </converters:ColorIndexToBrushConverter>
+        </ResourceDictionary>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -28,31 +49,68 @@
             <ListView Grid.Column="0" ItemsSource="{Binding Records}" FontFamily="Consolas">
                 <ListView.View>
                     <GridView>
-                        <GridViewColumn Header="Время" DisplayMemberBinding="{Binding Time, StringFormat='HH:mm:ss.fff'}" />
+                        <GridViewColumn Header="Время"
+                                        DisplayMemberBinding="{Binding Time, StringFormat='HH:mm:ss.fff'}" />
                         <GridViewColumn Header="Источник" DisplayMemberBinding="{Binding Source}" />
                         <GridViewColumn Header="Сообщение" DisplayMemberBinding="{Binding Message}" />
                     </GridView>
                 </ListView.View>
                 <i:Interaction.Behaviors>
-                    <local:AutoScrollBehavior IsActive="{Binding ElementName=AutoscrollSwitch, Path=IsChecked}" />
-                    <local:MultiSelectionBehavior SelectedItems="{Binding SelectedRecords}" />
+                    <behaviors:AutoScrollBehavior IsActive="{Binding ElementName=AutoscrollSwitch, Path=IsChecked}" />
+                    <behaviors:MultiSelectionBehavior SelectedItems="{Binding SelectedRecords}" />
                 </i:Interaction.Behaviors>
+                <ListView.ItemContainerStyle>
+                    <Style>
+                        <Setter Property="TextBlock.Foreground"
+                                Value="{Binding Path=Source.ColorIndex, Converter={StaticResource ColorConverter}}" />
+                    </Style>
+                </ListView.ItemContainerStyle>
             </ListView>
             <GridSplitter Grid.Column="1" ResizeDirection="Columns" Width="2" ResizeBehavior="PreviousAndNext" />
-            <ListView Grid.Column="2" ItemsSource="{Binding Sources}" FontFamily="Consolas">
-                <ListView.View>
-                    <GridView>
-                        <GridViewColumn>
-                            <GridViewColumn.CellTemplate>
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <ListView Grid.Row="0" ItemsSource="{Binding Sources}" FontFamily="Consolas" Name="SourcesList">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding IsSelected}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="Источник" DisplayMemberBinding="{Binding Name}" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+                <GridSplitter Grid.Row="1" ResizeDirection="Columns" Height="2" ResizeBehavior="PreviousAndNext" />
+                <Border Grid.Row="2" DataContext="{Binding ElementName=SourcesList, Path=SelectedItem}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="2*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Цвет:" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,2" />
+                        <ComboBox Grid.Row="0" Grid.Column="1" VerticalAlignment="Top" Margin="4" IsReadOnly="True"
+                                  ItemsSource="{Binding Source={StaticResource ColorConverter}, Path=Brushes}"
+                                  SelectedIndex="{Binding Path=ColorIndex}">
+                            <ComboBox.ItemTemplate>
                                 <DataTemplate>
-                                    <CheckBox IsChecked="{Binding IsSelected}" />
+                                    <Rectangle Height="18" Width="100" Fill="{Binding}" Stroke="Black" StrokeThickness="1" />
                                 </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                        <GridViewColumn Header="Источник" DisplayMemberBinding="{Binding Name}" />
-                    </GridView>
-                </ListView.View>
-            </ListView>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </Grid>
+                </Border>
+            </Grid>
         </Grid>
         <StatusBar Grid.Row="2">
             <StatusBarItem>

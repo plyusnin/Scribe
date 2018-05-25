@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Reactive.Linq;
-using Scribe.Gui.ViewModel;
+using Scribe.EventsLayer;
+using Scribe.EventsLayer.NLog;
 
-namespace Scribe.Gui
+namespace Scribe.RecordsLayer
 {
     public class NLogRecordsSource : IRecordsSource
     {

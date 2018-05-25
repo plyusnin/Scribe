@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Scribe.Gui.ViewModel
+namespace Scribe.RecordsLayer
 {
     public class LogRecord
     {

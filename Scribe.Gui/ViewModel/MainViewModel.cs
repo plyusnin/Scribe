@@ -5,47 +5,45 @@ using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using ReactiveUI;
+using Scribe.RecordsLayer;
 
 namespace Scribe.Gui.ViewModel
 {
     public class MainViewModel : ReactiveObject
     {
-        private readonly IReactiveDerivedList<LogRecord> _allRecords;
+        private readonly IReactiveDerivedList<ConnectedLogRecord> _allRecords;
         private readonly IRecordsSource _recordsSource;
-        private HashSet<string> _enabledSources = new HashSet<string>();
         private readonly ObservableAsPropertyHelper<TimeSpan> _selectedInterval;
+        private readonly Dictionary<string, SourceViewModel> _sourcesDictionary = new Dictionary<string, SourceViewModel>();
 
-        private IList<LogRecord> _selectedRecords = new List<LogRecord>();
+        private SourceViewModel _selectedSource;
+        private readonly ReactiveList<SourceViewModel> _sources = new ReactiveList<SourceViewModel>();
 
         public MainViewModel(IRecordsSource RecordsSource)
         {
             _recordsSource = RecordsSource;
 
-            Sources = _recordsSource.Source
-                                    .Select(s => s.Source)
-                                    .Distinct()
-                                    .Select(x => new SourceViewModel(true, x))
-                                    .CreateCollection(DispatcherScheduler.Current);
+            Sources = _sources.CreateDerivedCollection(x => x,
+                                                       orderer: (a, b) => string.CompareOrdinal(a.Name, b.Name),
+                                                       scheduler: DispatcherScheduler.Current);
 
             _allRecords = _recordsSource.Source
                                         .Buffer(TimeSpan.FromMilliseconds(100))
+                                        .ObserveOnDispatcher()
+                                        .Select(CreateConnectedLogRecord)
                                         .SelectMany(x => x)
-                                        .CreateCollection(DispatcherScheduler.Current);
-
-            Records = _allRecords.CreateDerivedCollection(x => x,
-                                                          x => _enabledSources.Contains(x.Source));
+                                        .CreateCollection(scheduler: DispatcherScheduler.Current);
 
             Sources.ChangeTrackingEnabled = true;
             Sources.ItemsAdded.Select(x => Unit.Default)
                    .Merge(Sources.ItemChanged.Select(x => Unit.Default))
                    .ObserveOnDispatcher()
-                   .Subscribe(_ =>
-                              {
-                                  _enabledSources = new HashSet<string>(Sources.Where(s => s.IsSelected).Select(s => s.Name));
-                                  Records.Reset();
-                              });
+                   .Subscribe(_ => Records.Reset());
 
-            SelectedRecords = new ReactiveList<LogRecord>();
+            Records = _allRecords.CreateDerivedCollection(x => new LogRecordViewModel(x.Record.Time, x.Source, x.Record.Message),
+                                                          x => x.Source.IsSelected);
+
+            SelectedRecords = new ReactiveList<LogRecordViewModel>();
 
             this.WhenAnyObservable(x => x.SelectedRecords.Changed)
                 .Select(_ => SelectedRecords)
@@ -55,9 +53,44 @@ namespace Scribe.Gui.ViewModel
 
         public TimeSpan SelectedInterval => _selectedInterval.Value;
 
-        public IReactiveDerivedList<LogRecord> Records { get; }
+        public SourceViewModel SelectedSource
+        {
+            get => _selectedSource;
+            set => this.RaiseAndSetIfChanged(ref _selectedSource, value);
+        }
+
+        public IReactiveDerivedList<LogRecordViewModel> Records { get; }
         public IReactiveDerivedList<SourceViewModel> Sources { get; }
 
-        public IReactiveList<LogRecord> SelectedRecords { get; }
+        public IReactiveList<LogRecordViewModel> SelectedRecords { get; }
+
+        Random _random = new Random();
+
+        private IEnumerable<ConnectedLogRecord> CreateConnectedLogRecord(IList<LogRecord> NewRecords)
+        {
+            foreach (var record in NewRecords)
+            {
+                SourceViewModel source;
+                if (!_sourcesDictionary.TryGetValue(record.Source, out source))
+                {
+                    source = new SourceViewModel(true, record.Source, _random.Next(0, 5));
+                    _sourcesDictionary.Add(record.Source, source);
+                    _sources.Add(source);
+                }
+                yield return new ConnectedLogRecord(record, source);
+            }
+        }
+
+        private class ConnectedLogRecord
+        {
+            public ConnectedLogRecord(LogRecord Record, SourceViewModel Source)
+            {
+                this.Record = Record;
+                this.Source = Source;
+            }
+
+            public LogRecord Record { get; }
+            public SourceViewModel Source { get; }
+        }
     }
 }

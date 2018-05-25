@@ -4,15 +4,15 @@ using System.Reactive.Linq;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace Scribe
+namespace Scribe.EventsLayer.NLog
 {
-    public class UdpLogSource : ILogSource<NLogEvent>, IDisposable
+    public class UdpNLogSource : ILogSource<NLogEvent>, IDisposable
     {
         private readonly IDisposable _connection;
         private readonly Encoding _encoding = Encoding.UTF8;
         private readonly UdpClient _server;
 
-        public UdpLogSource()
+        public UdpNLogSource()
         {
             _server = new UdpClient(48645);
 
