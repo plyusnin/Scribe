@@ -14,14 +14,16 @@ namespace Scribe.Gui.ViewModel
         private readonly IReactiveDerivedList<ConnectedLogRecord> _allRecords;
         private readonly IRecordsSource _recordsSource;
         private readonly ObservableAsPropertyHelper<TimeSpan> _selectedInterval;
+        private readonly ReactiveList<SourceViewModel> _sources = new ReactiveList<SourceViewModel>();
         private readonly Dictionary<string, SourceViewModel> _sourcesDictionary = new Dictionary<string, SourceViewModel>();
+        private readonly SourceViewModelFactory _sourceViewModelFactory;
 
         private SourceViewModel _selectedSource;
-        private readonly ReactiveList<SourceViewModel> _sources = new ReactiveList<SourceViewModel>();
 
-        public MainViewModel(IRecordsSource RecordsSource)
+        public MainViewModel(IRecordsSource RecordsSource, SourceViewModelFactory SourceViewModelFactory)
         {
             _recordsSource = RecordsSource;
+            _sourceViewModelFactory = SourceViewModelFactory;
 
             Sources = _sources.CreateDerivedCollection(x => x,
                                                        orderer: (a, b) => string.CompareOrdinal(a.Name, b.Name),
@@ -32,7 +34,7 @@ namespace Scribe.Gui.ViewModel
                                         .ObserveOnDispatcher()
                                         .Select(CreateConnectedLogRecord)
                                         .SelectMany(x => x)
-                                        .CreateCollection(scheduler: DispatcherScheduler.Current);
+                                        .CreateCollection(DispatcherScheduler.Current);
 
             Sources.ChangeTrackingEnabled = true;
             Sources.ItemsAdded.Select(x => Unit.Default)
@@ -64,8 +66,6 @@ namespace Scribe.Gui.ViewModel
 
         public IReactiveList<LogRecordViewModel> SelectedRecords { get; }
 
-        Random _random = new Random();
-
         private IEnumerable<ConnectedLogRecord> CreateConnectedLogRecord(IList<LogRecord> NewRecords)
         {
             foreach (var record in NewRecords)
@@ -73,7 +73,8 @@ namespace Scribe.Gui.ViewModel
                 SourceViewModel source;
                 if (!_sourcesDictionary.TryGetValue(record.Source, out source))
                 {
-                    source = new SourceViewModel(true, record.Source, _random.Next(0, 5));
+                    source = _sourceViewModelFactory.CreateInstance(record.Source);
+
                     _sourcesDictionary.Add(record.Source, source);
                     _sources.Add(source);
                 }
