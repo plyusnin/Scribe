@@ -46,12 +46,13 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="280" />
             </Grid.ColumnDefinitions>
-            <ListView Grid.Column="0" ItemsSource="{Binding Records}" FontFamily="Consolas">
+            <ListView Grid.Column="0" ItemsSource="{Binding Records}" FontFamily="Consolas"
+                      Name="LogBox" SelectionChanged="LogBox_OnSelectionChanged">
                 <ListView.View>
                     <GridView>
                         <GridViewColumn Header="Время"
                                         DisplayMemberBinding="{Binding Time, StringFormat='HH:mm:ss.fff'}" />
-                        <GridViewColumn Header="Источник" DisplayMemberBinding="{Binding Source}" />
+                        <GridViewColumn Header="Источник" DisplayMemberBinding="{Binding Path=Source.Name}" />
                         <GridViewColumn Header="Сообщение" DisplayMemberBinding="{Binding Message}" />
                     </GridView>
                 </ListView.View>
@@ -83,7 +84,7 @@
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
-                            <GridViewColumn Header="Источник" DisplayMemberBinding="{Binding Name}" />
+                            <GridViewColumn Header="Источник" DisplayMemberBinding="{Binding Name}" Width="300" />
                         </GridView>
                     </ListView.View>
                 </ListView>
