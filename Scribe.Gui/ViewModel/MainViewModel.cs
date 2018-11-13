@@ -11,7 +11,7 @@ namespace Scribe.Gui.ViewModel
 {
     public class MainViewModel : ReactiveObject
     {
-        private readonly IReactiveDerivedList<ConnectedLogRecord> _allRecords;
+        private readonly ReactiveList<ConnectedLogRecord> _allRecords;
         private readonly IRecordsSource _recordsSource;
         private readonly ObservableAsPropertyHelper<TimeSpan> _selectedInterval;
         private readonly ReactiveList<SourceViewModel> _sources = new ReactiveList<SourceViewModel>();
@@ -29,12 +29,14 @@ namespace Scribe.Gui.ViewModel
                                                        orderer: (a, b) => string.CompareOrdinal(a.Name, b.Name),
                                                        scheduler: DispatcherScheduler.Current);
 
-            _allRecords = _recordsSource.Source
-                                        .Buffer(TimeSpan.FromMilliseconds(100))
-                                        .ObserveOnDispatcher()
-                                        .Select(CreateConnectedLogRecord)
-                                        .SelectMany(x => x)
-                                        .CreateCollection(DispatcherScheduler.Current);
+            _allRecords = new ReactiveList<ConnectedLogRecord>();
+
+            _recordsSource.Source
+                          .Buffer(TimeSpan.FromMilliseconds(100))
+                          .ObserveOnDispatcher()
+                          .Select(CreateConnectedLogRecord)
+                          .ObserveOn(DispatcherScheduler.Current)
+                          .Subscribe(x => _allRecords.AddRange(x));
 
             Sources.ChangeTrackingEnabled = true;
             Sources.ItemsAdded.Select(x => Unit.Default)
@@ -47,11 +49,16 @@ namespace Scribe.Gui.ViewModel
 
             SelectedRecords = new ReactiveList<LogRecordViewModel>();
 
+            Clear = ReactiveCommand.Create(() => _allRecords.Clear(),
+                                           _allRecords.IsEmptyChanged.Select(x => !x));
+
             this.WhenAnyObservable(x => x.SelectedRecords.Changed)
                 .Select(_ => SelectedRecords)
                 .Select(s => s.Count > 1 ? s.Max(r => r.Time) - s.Min(r => r.Time) : TimeSpan.Zero)
                 .ToProperty(this, x => x.SelectedInterval, out _selectedInterval);
         }
+
+        public ReactiveCommand Clear { get; }
 
         public TimeSpan SelectedInterval => _selectedInterval.Value;
 
