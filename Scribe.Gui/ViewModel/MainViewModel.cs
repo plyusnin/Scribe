@@ -37,11 +37,12 @@ namespace Scribe.Gui.ViewModel
                           .Buffer(TimeSpan.FromMilliseconds(100))
                           .ObserveOnDispatcher()
                           .Select(CreateConnectedLogRecord)
-                          .ObserveOn(DispatcherScheduler.Current)
                           .Subscribe(x => _allRecords.AddRange(x));
 
-            var selectedRecords = _allRecords.CreateDerivedCollection(x => new LogRecordViewModel(x.Record.Time, x.Source, x.Record.Message, x.Record.Level),
-                                                                      x => x.Source.IsSelected);
+            var selectedRecords = _allRecords.CreateDerivedCollection(
+                x => new LogRecordViewModel(x.Record.Time, x.Source, x.Record.Message, x.Record.Level),
+                x => x.Source.IsSelected,
+                scheduler: DispatcherScheduler.Current);
 
             Sources.ChangeTrackingEnabled = true;
             Sources.ItemsAdded.Select(x => Unit.Default)
@@ -49,15 +50,18 @@ namespace Scribe.Gui.ViewModel
                    .ObserveOnDispatcher()
                    .Subscribe(_ => selectedRecords.Reset());
 
-            Records = selectedRecords.CreateDerivedCollection(x => x,
-                                                              x => string.IsNullOrWhiteSpace(QuickFilter)
-                                                                   || x.Message.ToLower().Contains(QuickFilter.ToLower()),
-                                                              signalReset: this.WhenAnyValue(x => x.QuickFilter).Select(x => Unit.Default));
+            Records = selectedRecords.CreateDerivedCollection(
+                x => x,
+                x => string.IsNullOrWhiteSpace(QuickFilter)
+                     || x.Message.ToLower().Contains(QuickFilter.ToLower()),
+                signalReset: this.WhenAnyValue(x => x.QuickFilter).Select(x => Unit.Default),
+                scheduler: DispatcherScheduler.Current);
 
             SelectedRecords = new ReactiveList<LogRecordViewModel>();
 
             Clear = ReactiveCommand.Create(() => _allRecords.Clear(),
-                                           _allRecords.IsEmptyChanged.Select(x => !x));
+                                           _allRecords.IsEmptyChanged.Select(x => !x),
+                                           DispatcherScheduler.Current);
 
             this.WhenAnyObservable(x => x.SelectedRecords.Changed)
                 .Select(_ => SelectedRecords)
