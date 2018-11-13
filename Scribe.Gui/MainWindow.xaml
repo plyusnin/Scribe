@@ -37,10 +37,20 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Name="Toolbar">
-            <ToggleButton Margin="2" Padding="15,3" Name="AutoscrollSwitch" Content="Автоскролл" IsChecked="True" />
-            <Button Margin="2" Padding="15,3" Content="Очистить" Command="{Binding Clear}" />
-        </StackPanel>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal" Name="Toolbar">
+                <ToggleButton Margin="2" Padding="15,3" Name="AutoscrollSwitch" Content="Автоскролл" IsChecked="True" />
+                <Button Margin="2" Padding="15,3" Content="Очистить" Command="{Binding Clear}" />
+            </StackPanel>
+            <DockPanel Grid.Column="1">
+                <Label Content="Поиск:" DockPanel.Dock="Left" />
+                <TextBox Text="{Binding QuickFilter, UpdateSourceTrigger=PropertyChanged}" Margin="2" MinWidth="170" Padding="2" />
+            </DockPanel>
+        </Grid>
         <Grid Grid.Row="1" Margin="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />

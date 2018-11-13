@@ -18,6 +18,8 @@ namespace Scribe.Gui.ViewModel
         private readonly Dictionary<string, SourceViewModel> _sourcesDictionary = new Dictionary<string, SourceViewModel>();
         private readonly SourceViewModelFactory _sourceViewModelFactory;
 
+        private string _quickFilter;
+
         private SourceViewModel _selectedSource;
 
         public MainViewModel(IRecordsSource RecordsSource, SourceViewModelFactory SourceViewModelFactory)
@@ -38,14 +40,19 @@ namespace Scribe.Gui.ViewModel
                           .ObserveOn(DispatcherScheduler.Current)
                           .Subscribe(x => _allRecords.AddRange(x));
 
+            var selectedRecords = _allRecords.CreateDerivedCollection(x => new LogRecordViewModel(x.Record.Time, x.Source, x.Record.Message, x.Record.Level),
+                                                                      x => x.Source.IsSelected);
+
             Sources.ChangeTrackingEnabled = true;
             Sources.ItemsAdded.Select(x => Unit.Default)
                    .Merge(Sources.ItemChanged.Select(x => Unit.Default))
                    .ObserveOnDispatcher()
-                   .Subscribe(_ => Records.Reset());
+                   .Subscribe(_ => selectedRecords.Reset());
 
-            Records = _allRecords.CreateDerivedCollection(x => new LogRecordViewModel(x.Record.Time, x.Source, x.Record.Message, x.Record.Level),
-                                                          x => x.Source.IsSelected);
+            Records = selectedRecords.CreateDerivedCollection(x => x,
+                                                              x => string.IsNullOrWhiteSpace(QuickFilter)
+                                                                   || x.Message.ToLower().Contains(QuickFilter.ToLower()),
+                                                              signalReset: this.WhenAnyValue(x => x.QuickFilter).Select(x => Unit.Default));
 
             SelectedRecords = new ReactiveList<LogRecordViewModel>();
 
@@ -66,6 +73,12 @@ namespace Scribe.Gui.ViewModel
         {
             get => _selectedSource;
             set => this.RaiseAndSetIfChanged(ref _selectedSource, value);
+        }
+
+        public string QuickFilter
+        {
+            get => _quickFilter;
+            set => this.RaiseAndSetIfChanged(ref _quickFilter, value);
         }
 
         public IReactiveDerivedList<LogRecordViewModel> Records { get; }
