@@ -95,6 +95,7 @@
     <Compile Include="Behaviors\AutoScrollBehavior.cs" />
     <Compile Include="Converters\ColorIndexToBrushConverter.cs" />
     <Compile Include="Behaviors\MultiSelectionBehavior.cs" />
+    <Compile Include="ItemLevelStyleSelector.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="ViewModel\LogRecordViewModel.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />

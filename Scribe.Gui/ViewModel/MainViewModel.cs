@@ -44,7 +44,7 @@ namespace Scribe.Gui.ViewModel
                    .ObserveOnDispatcher()
                    .Subscribe(_ => Records.Reset());
 
-            Records = _allRecords.CreateDerivedCollection(x => new LogRecordViewModel(x.Record.Time, x.Source, x.Record.Message),
+            Records = _allRecords.CreateDerivedCollection(x => new LogRecordViewModel(x.Record.Time, x.Source, x.Record.Message, x.Record.Level),
                                                           x => x.Source.IsSelected);
 
             SelectedRecords = new ReactiveList<LogRecordViewModel>();

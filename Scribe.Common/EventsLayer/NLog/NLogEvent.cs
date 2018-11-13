@@ -4,7 +4,7 @@ namespace Scribe.EventsLayer.NLog
 {
     public class NLogEvent : IEvent
     {
-        public NLogEvent(string Logger, string Level, string Message, DateTime Time, string Exception)
+        public NLogEvent(string Logger, LogLevel Level, string Message, DateTime Time, string Exception)
         {
             this.Logger = Logger;
             this.Level = Level;
@@ -13,7 +13,7 @@ namespace Scribe.EventsLayer.NLog
             this.Exception = Exception;
         }
 
-        public string Level { get; }
+        public LogLevel Level { get; }
         public string Exception { get; }
 
         public string Logger { get; }

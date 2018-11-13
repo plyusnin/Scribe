@@ -54,6 +54,7 @@
   <ItemGroup>
     <Compile Include="EventsLayer\IEvent.cs" />
     <Compile Include="EventsLayer\ILogSource.cs" />
+    <Compile Include="EventsLayer\LogLevel.cs" />
     <Compile Include="EventsLayer\NLog\NLogEvent.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RecordsLayer\IRecordsSource.cs" />
