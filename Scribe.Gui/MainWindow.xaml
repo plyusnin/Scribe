@@ -124,7 +124,8 @@
             <StatusBarItem>
                 <TextBlock>
                     <Run Text="Интервал:" />
-                    <Run Text="{Binding SelectedInterval, Mode=OneWay}" FontWeight="SemiBold" />
+                    <Run Text="{Binding SelectedInterval.TotalSeconds, Mode=OneWay, StringFormat='F3'}" FontWeight="SemiBold" />
+                    <Run Text="сек." />
                 </TextBlock>
             </StatusBarItem>
         </StatusBar>
