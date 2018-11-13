@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reactive;
+using System.Reactive.Linq;
 using Newtonsoft.Json;
 using ReactiveUI;
 
@@ -22,9 +23,8 @@ namespace Scribe.Gui
                 ChangeTrackingEnabled = true
             };
 
-            _savingConnection = this.WhenAnyObservable(x => x.SourcesOptions.ItemChanged,
-                                                       x => x.SourcesOptions.Changed,
-                                                       (a, b) => Unit.Default)
+            _savingConnection = Observable.Merge(SourcesOptions.ItemChanged.Select(x => Unit.Default),
+                                                 SourcesOptions.Changed.Select(x => Unit.Default))
                                     .Subscribe(_ => Save());
         }
 
