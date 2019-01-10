@@ -5,17 +5,19 @@ namespace Scribe.Gui.ViewModel
 {
     public class LogRecordViewModel
     {
-        public LogRecordViewModel(DateTime Time, SourceViewModel Source, string Message, LogLevel Level)
+        public LogRecordViewModel(DateTime Time, SourceViewModel Source, string Message, LogLevel Level, string Exception)
         {
             this.Time = Time;
             this.Source = Source;
             this.Message = Message;
             this.Level = Level;
+            this.Exception = Exception;
         }
 
         public DateTime Time { get; }
         public SourceViewModel Source { get; }
         public string Message { get; }
         public LogLevel Level { get; }
+        public string Exception { get; }
     }
 }

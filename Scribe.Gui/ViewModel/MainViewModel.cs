@@ -19,8 +19,10 @@ namespace Scribe.Gui.ViewModel
         private readonly SourceViewModelFactory _sourceViewModelFactory;
 
         private string _quickFilter;
+        private readonly ObservableAsPropertyHelper<LogRecordViewModel> _selectedRecord;
 
         private SourceViewModel _selectedSource;
+        private readonly ObservableAsPropertyHelper<bool> _hasExceptionToShow;
 
         public MainViewModel(IRecordsSource RecordsSource, SourceViewModelFactory SourceViewModelFactory)
         {
@@ -40,7 +42,7 @@ namespace Scribe.Gui.ViewModel
                           .Subscribe(x => _allRecords.AddRange(x));
 
             var selectedRecords = _allRecords.CreateDerivedCollection(
-                x => new LogRecordViewModel(x.Record.Time, x.Source, x.Record.Message, x.Record.Level),
+                x => new LogRecordViewModel(x.Record.Time, x.Source, x.Record.Message, x.Record.Level, x.Record.Exception),
                 x => x.Source.IsSelected,
                 scheduler: DispatcherScheduler.Current);
 
@@ -67,11 +69,22 @@ namespace Scribe.Gui.ViewModel
                 .Select(_ => SelectedRecords)
                 .Select(s => s.Count > 1 ? s.Max(r => r.Time) - s.Min(r => r.Time) : TimeSpan.Zero)
                 .ToProperty(this, x => x.SelectedInterval, out _selectedInterval);
+
+            this.WhenAnyObservable(x => x.SelectedRecords.Changed)
+                .Select(_ => SelectedRecords)
+                .Select(sel => sel.Count == 1 ? sel[0] : null)
+                .ToProperty(this, x => x.SelectedRecord, out _selectedRecord);
+
+            this.WhenAnyValue(x => x.SelectedRecord)
+                .Select(x => x?.Exception != null)
+                .ToProperty(this, x => x.HasExceptionToShow, out _hasExceptionToShow);
         }
 
-        public ReactiveCommand Clear { get; }
-
         public TimeSpan SelectedInterval => _selectedInterval.Value;
+        public bool HasExceptionToShow => _hasExceptionToShow.Value;
+        public LogRecordViewModel SelectedRecord => _selectedRecord.Value;
+
+        public ReactiveCommand Clear { get; }
 
         public SourceViewModel SelectedSource
         {

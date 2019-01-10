@@ -29,6 +29,7 @@
                     <SolidColorBrush Color="LightSlateGray" />
                 </converters:ColorIndexToBrushConverter.Brushes>
             </converters:ColorIndexToBrushConverter>
+            <BooleanToVisibilityConverter x:Key="btv" />
         </ResourceDictionary>
     </Window.Resources>
     <Grid>
@@ -57,55 +58,74 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="280" />
             </Grid.ColumnDefinitions>
-            <ListView Grid.Column="0" ItemsSource="{Binding Records}" FontFamily="Consolas"
-                      Name="LogBox" SelectionChanged="LogBox_OnSelectionChanged">
-                <ListView.Resources>
-                    <Style x:Key="LogItemStyle">
-                        <Setter Property="TextBlock.Foreground"
-                                Value="{Binding Path=Source.ColorIndex, Converter={StaticResource ColorConverter}}" />
-                    </Style>
-                </ListView.Resources>
-                <ListView.ItemContainerStyleSelector >
-                    <local:ItemLevelStyleSelector DefaultStyle="{StaticResource LogItemStyle}">
-                        <local:ItemLevelStyleSelector.TraceStyle>
-                            <Style TargetType="ListViewItem" BasedOn="{StaticResource LogItemStyle}">
-                                <Setter Property="TextBlock.FontWeight" Value="UltraLight" />
-                                <Setter Property="Opacity" Value="0.7" />
-                            </Style>
-                        </local:ItemLevelStyleSelector.TraceStyle>
-                        <local:ItemLevelStyleSelector.DebugStyle>
-                            <Style TargetType="ListViewItem" BasedOn="{StaticResource LogItemStyle}">
-                                <Setter Property="TextBlock.FontWeight" Value="Light" />
-                                <Setter Property="Opacity" Value="0.8" />
-                            </Style>
-                        </local:ItemLevelStyleSelector.DebugStyle>
-                        <local:ItemLevelStyleSelector.WarnStyle>
-                            <Style TargetType="ListViewItem" BasedOn="{StaticResource LogItemStyle}">
-                                <Setter Property="Background" Value="#14FFAB00" />
-                            </Style>
-                        </local:ItemLevelStyleSelector.WarnStyle>
-                        <local:ItemLevelStyleSelector.ErrorStyle>
-                            <Style TargetType="ListViewItem" BasedOn="{StaticResource LogItemStyle}">
-                                <Setter Property="TextBlock.FontWeight" Value="Bold" />
-                                <Setter Property="Background" Value="#20FF4500" />
-                            </Style>
-                        </local:ItemLevelStyleSelector.ErrorStyle>
-                    </local:ItemLevelStyleSelector>
-                </ListView.ItemContainerStyleSelector>
-                <ListView.View>
-                    <GridView>
-                        <GridViewColumn Header="Время" Width="100"
-                                        DisplayMemberBinding="{Binding Time, StringFormat='HH:mm:ss.fff'}" />
-                        <GridViewColumn Header="Источник" DisplayMemberBinding="{Binding Path=Source.Name}" Width="180" />
-                        <GridViewColumn Header="Сообщение" DisplayMemberBinding="{Binding Message}" Width="800" />
-                    </GridView>
-                </ListView.View>
-                <i:Interaction.Behaviors>
-                    <behaviors:AutoScrollBehavior IsActive="{Binding ElementName=AutoscrollSwitch, Path=IsChecked}" />
-                    <behaviors:MultiSelectionBehavior SelectedItems="{Binding SelectedRecords}" />
-                </i:Interaction.Behaviors>
-            </ListView>
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" MinHeight="300" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <ListView Grid.Row="0" ItemsSource="{Binding Records}" FontFamily="Consolas"
+                          Name="LogBox" SelectionChanged="LogBox_OnSelectionChanged">
+                    <ListView.Resources>
+                        <Style x:Key="LogItemStyle">
+                            <Setter Property="TextBlock.Foreground"
+                                    Value="{Binding Path=Source.ColorIndex, Converter={StaticResource ColorConverter}}" />
+                        </Style>
+                    </ListView.Resources>
+                    <ListView.ItemContainerStyleSelector >
+                        <local:ItemLevelStyleSelector DefaultStyle="{StaticResource LogItemStyle}">
+                            <local:ItemLevelStyleSelector.TraceStyle>
+                                <Style TargetType="ListViewItem" BasedOn="{StaticResource LogItemStyle}">
+                                    <Setter Property="TextBlock.FontWeight" Value="UltraLight" />
+                                    <Setter Property="Opacity" Value="0.7" />
+                                </Style>
+                            </local:ItemLevelStyleSelector.TraceStyle>
+                            <local:ItemLevelStyleSelector.DebugStyle>
+                                <Style TargetType="ListViewItem" BasedOn="{StaticResource LogItemStyle}">
+                                    <Setter Property="TextBlock.FontWeight" Value="Light" />
+                                    <Setter Property="Opacity" Value="0.8" />
+                                </Style>
+                            </local:ItemLevelStyleSelector.DebugStyle>
+                            <local:ItemLevelStyleSelector.WarnStyle>
+                                <Style TargetType="ListViewItem" BasedOn="{StaticResource LogItemStyle}">
+                                    <Setter Property="Background" Value="#14FFAB00" />
+                                </Style>
+                            </local:ItemLevelStyleSelector.WarnStyle>
+                            <local:ItemLevelStyleSelector.ErrorStyle>
+                                <Style TargetType="ListViewItem" BasedOn="{StaticResource LogItemStyle}">
+                                    <Setter Property="TextBlock.FontWeight" Value="Bold" />
+                                    <Setter Property="Background" Value="#20FF4500" />
+                                </Style>
+                            </local:ItemLevelStyleSelector.ErrorStyle>
+                        </local:ItemLevelStyleSelector>
+                    </ListView.ItemContainerStyleSelector>
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Время" Width="100"
+                                            DisplayMemberBinding="{Binding Time, StringFormat='HH:mm:ss.fff'}" />
+                            <GridViewColumn Header="Источник" DisplayMemberBinding="{Binding Path=Source.Name}" Width="180" />
+                            <GridViewColumn Header="Сообщение" DisplayMemberBinding="{Binding Message}" Width="800" />
+                        </GridView>
+                    </ListView.View>
+                    <i:Interaction.Behaviors>
+                        <behaviors:AutoScrollBehavior IsActive="{Binding ElementName=AutoscrollSwitch, Path=IsChecked}" />
+                        <behaviors:MultiSelectionBehavior SelectedItems="{Binding SelectedRecords}" />
+                    </i:Interaction.Behaviors>
+                </ListView>
+                <TextBox Grid.Row="1" IsReadOnly="True" FontFamily="Consolas"
+                         Padding="2,5,0,5" Margin="0,2,0,0" VerticalScrollBarVisibility="Visible"
+                         Visibility="{Binding HasExceptionToShow, Converter={StaticResource btv}}"
+                         Text="{Binding Path=SelectedRecord.Exception, Mode=OneWay}">
+                    <TextBox.Background>
+                        <LinearGradientBrush StartPoint="0.5,0.0" EndPoint="0.5,1.0">
+                            <GradientStop Color="#11FF00CB" />
+                            <GradientStop Offset="0.5" Color="Transparent" />
+                        </LinearGradientBrush>
+                    </TextBox.Background>
+                </TextBox>
+            </Grid>
+            
             <GridSplitter Grid.Column="1" ResizeDirection="Columns" Width="2" ResizeBehavior="PreviousAndNext" />
+            
             <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />

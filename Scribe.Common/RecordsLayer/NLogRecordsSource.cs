@@ -13,7 +13,7 @@ namespace Scribe.RecordsLayer
         {
             _eventsSource = EventsSource;
             Source = _eventsSource.Source
-                                  .Select(e => new LogRecord(e.Time, e.Logger, e.Message, e.Level));
+                                  .Select(e => new LogRecord(e.Time, e.Logger, e.Message, e.Level, e.Exception));
         }
 
         public IObservable<LogRecord> Source { get; }
