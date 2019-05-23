@@ -103,6 +103,7 @@
                             <GridViewColumn Header="Время" Width="100"
                                             DisplayMemberBinding="{Binding Time, StringFormat='HH:mm:ss.fff'}" />
                             <GridViewColumn Header="Источник" DisplayMemberBinding="{Binding Path=Source.Name}" Width="180" />
+                            <GridViewColumn Header="Уровень" DisplayMemberBinding="{Binding Path=Level}" Width="70" />
                             <GridViewColumn Header="Сообщение" DisplayMemberBinding="{Binding Message}" Width="800" />
                         </GridView>
                     </ListView.View>
@@ -151,13 +152,15 @@
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="2*" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Цвет:" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,2" />
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Цвет:" HorizontalAlignment="Right"
+                                   VerticalAlignment="Center" Margin="4,2" />
                         <ComboBox Grid.Row="0" Grid.Column="1" VerticalAlignment="Top" Margin="4" IsReadOnly="True"
                                   ItemsSource="{Binding Source={StaticResource ColorConverter}, Path=Brushes}"
                                   SelectedIndex="{Binding Path=ColorIndex}">
@@ -167,6 +170,16 @@
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>
                         </ComboBox>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Уровни:" HorizontalAlignment="Right"
+                                   VerticalAlignment="Top" Margin="4,2" />
+                        <ItemsControl Grid.Row="1" Grid.Column="1" Margin="2" ItemsSource="{Binding Path=DisplayLogLevels}"
+                                      IsTabStop="False" Focusable="False">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="viewModel:LogLevelFilterViewModel">
+                                    <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding Name}" Margin="2" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </Grid>
                 </Border>
             </Grid>

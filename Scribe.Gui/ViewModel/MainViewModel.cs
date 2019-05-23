@@ -43,7 +43,7 @@ namespace Scribe.Gui.ViewModel
 
             var selectedRecords = _allRecords.CreateDerivedCollection(
                 x => new LogRecordViewModel(x.Record.Time, x.Source, x.Record.Message, x.Record.Level, x.Record.Exception),
-                x => x.Source.IsSelected,
+                x => x.Source.IsSelected && x.Source.SelectedLevels.Contains(x.Record.Level),
                 scheduler: DispatcherScheduler.Current);
 
             Sources.ChangeTrackingEnabled = true;
