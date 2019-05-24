@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Reactive.Linq;
 using ReactiveUI;
 
 namespace Scribe.Gui.ViewModel
@@ -24,8 +25,17 @@ namespace Scribe.Gui.ViewModel
             }
 
             var viewModel = new SourceViewModel(options.IsEnabled, SourceName, options.ColorIndex);
+            foreach (var hideLogLevel in options.HideLogLevels)
+                viewModel.DisplayLogLevels.Single(l => l.Value == hideLogLevel).IsSelected = false;
+
             viewModel.WhenAnyValue(x => x.ColorIndex).BindTo(options, o => o.ColorIndex);
             viewModel.WhenAnyValue(x => x.IsSelected).BindTo(options, o => o.IsEnabled);
+            viewModel.WhenAnyValue(x => x.SelectedLevels)
+                     .Select(x => viewModel.DisplayLogLevels
+                                           .Select(lvm => lvm.Value)
+                                           .Where(l => !x.Contains(l))
+                                           .ToList())
+                     .BindTo(options, o => o.HideLogLevels);
             return viewModel;
         }
     }
