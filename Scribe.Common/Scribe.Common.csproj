@@ -47,6 +47,9 @@
     <Reference Include="System.Reactive.Linq, Version=3.0.3000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Reactive.Linq.3.1.1\lib\net46\System.Reactive.Linq.dll</HintPath>
     </Reference>
+    <Reference Include="System.Reactive.PlatformServices, Version=3.0.3000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Reactive.PlatformServices.3.1.1\lib\net46\System.Reactive.PlatformServices.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -55,10 +58,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EventsLayer\CompositeLogSource.cs" />
     <Compile Include="EventsLayer\IEvent.cs" />
+    <Compile Include="EventsLayer\ILogFileOpener.cs" />
     <Compile Include="EventsLayer\ILogSource.cs" />
     <Compile Include="EventsLayer\LogLevel.cs" />
+    <Compile Include="EventsLayer\NLog\FileNLogSource.cs" />
     <Compile Include="EventsLayer\NLog\NLogEvent.cs" />
+    <Compile Include="EventsLayer\NLog\NLogSourceBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RecordsLayer\IRecordsSource.cs" />
     <Compile Include="RecordsLayer\LogRecord.cs" />

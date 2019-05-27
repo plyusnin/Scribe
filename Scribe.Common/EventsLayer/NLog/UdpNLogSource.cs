@@ -2,11 +2,10 @@
 using System.Net.Sockets;
 using System.Reactive.Linq;
 using System.Text;
-using Newtonsoft.Json;
 
 namespace Scribe.EventsLayer.NLog
 {
-    public class UdpNLogSource : ILogSource<NLogEvent>, IDisposable
+    public class UdpNLogSource : NLogSourceBase, IDisposable
     {
         private readonly IDisposable _connection;
         private readonly Encoding _encoding = Encoding.UTF8;
@@ -26,25 +25,12 @@ namespace Scribe.EventsLayer.NLog
             _connection = source.Connect();
         }
 
-        private NLogEvent Deserialize(string msg)
-        {
-            try
-            {
-                return JsonConvert.DeserializeObject<NLogEvent>(msg);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
-        }
+        public override IObservable<NLogEvent> Source { get; }
 
         public void Dispose()
         {
             _connection.Dispose();
             _server.Dispose();
         }
-
-        public IObservable<NLogEvent> Source { get; }
     }
 }
