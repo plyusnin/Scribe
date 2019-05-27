@@ -1,10 +1,17 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
+using Microsoft.Win32;
 using ReactiveUI;
+using Scribe.EventsLayer;
 using Scribe.RecordsLayer;
 
 namespace Scribe.Gui.ViewModel
@@ -12,39 +19,45 @@ namespace Scribe.Gui.ViewModel
     public class MainViewModel : ReactiveObject
     {
         private readonly ReactiveList<ConnectedLogRecord> _allRecords;
+        private readonly ObservableAsPropertyHelper<bool> _hasExceptionToShow;
+        private readonly ICollection<ILogFileOpener> _logFileOpeners;
         private readonly IRecordsSource _recordsSource;
         private readonly ObservableAsPropertyHelper<TimeSpan> _selectedInterval;
+        private readonly ObservableAsPropertyHelper<LogRecordViewModel> _selectedRecord;
         private readonly ReactiveList<SourceViewModel> _sources = new ReactiveList<SourceViewModel>();
-        private readonly Dictionary<string, SourceViewModel> _sourcesDictionary = new Dictionary<string, SourceViewModel>();
+        private readonly ConcurrentDictionary<string, SourceViewModel> _sourcesDictionary = new ConcurrentDictionary<string, SourceViewModel>();
         private readonly SourceViewModelFactory _sourceViewModelFactory;
 
         private string _quickFilter;
-        private readonly ObservableAsPropertyHelper<LogRecordViewModel> _selectedRecord;
 
         private SourceViewModel _selectedSource;
-        private readonly ObservableAsPropertyHelper<bool> _hasExceptionToShow;
 
-        public MainViewModel(IRecordsSource RecordsSource, SourceViewModelFactory SourceViewModelFactory)
+        public MainViewModel(IRecordsSource RecordsSource, SourceViewModelFactory SourceViewModelFactory, ICollection<ILogFileOpener> LogFileOpeners)
         {
             _recordsSource = RecordsSource;
             _sourceViewModelFactory = SourceViewModelFactory;
+            _logFileOpeners = LogFileOpeners;
 
             Sources = _sources.CreateDerivedCollection(x => x,
                                                        orderer: (a, b) => string.CompareOrdinal(a.Name, b.Name),
                                                        scheduler: DispatcherScheduler.Current);
 
+            OpenLogFile = ReactiveCommand.CreateFromTask(OpenLogFileRoutine, outputScheduler: DispatcherScheduler.Current);
+            OpenLogFile.ThrownExceptions
+                       .Subscribe(e => MessageBox.Show(e.Message, "Ой!"));
+
             _allRecords = new ReactiveList<ConnectedLogRecord>();
 
             _recordsSource.Source
                           .Buffer(TimeSpan.FromMilliseconds(100))
+                          .Where(list => list.Any())
+                          .Select(l => CreateConnectedLogRecord(l).ToList())
                           .ObserveOnDispatcher()
-                          .Select(CreateConnectedLogRecord)
                           .Subscribe(x => _allRecords.AddRange(x));
 
             var selectedRecords = _allRecords.CreateDerivedCollection(
                 x => new LogRecordViewModel(x.Record.Time, x.Source, x.Record.Message, x.Record.Level, x.Record.Exception),
-                x => x.Source.IsSelected && x.Source.SelectedLevels.Contains(x.Record.Level),
-                scheduler: DispatcherScheduler.Current);
+                x => x.Source.IsSelected && x.Source.SelectedLevels.Contains(x.Record.Level));
 
             Sources.ChangeTrackingEnabled = true;
             Sources.ItemsAdded.Select(x => Unit.Default)
@@ -55,9 +68,11 @@ namespace Scribe.Gui.ViewModel
             Records = selectedRecords.CreateDerivedCollection(
                 x => x,
                 x => string.IsNullOrWhiteSpace(QuickFilter)
-                     || x.Message.ToLower().Contains(QuickFilter.ToLower()),
-                signalReset: this.WhenAnyValue(x => x.QuickFilter).Select(x => Unit.Default),
-                scheduler: DispatcherScheduler.Current);
+                     || x.Message.IndexOf(QuickFilter, StringComparison.CurrentCultureIgnoreCase) >= 0,
+                signalReset: this.WhenAnyValue(x => x.QuickFilter)
+                                 .Throttle(TimeSpan.FromMilliseconds(200))
+                                 .ObserveOnDispatcher()
+                                 .Select(x => Unit.Default));
 
             SelectedRecords = new ReactiveList<LogRecordViewModel>();
 
@@ -79,6 +94,8 @@ namespace Scribe.Gui.ViewModel
                 .Select(x => x?.Exception != null)
                 .ToProperty(this, x => x.HasExceptionToShow, out _hasExceptionToShow);
         }
+
+        public ReactiveCommand<Unit, Unit> OpenLogFile { get; }
 
         public TimeSpan SelectedInterval => _selectedInterval.Value;
         public bool HasExceptionToShow => _hasExceptionToShow.Value;
@@ -103,18 +120,38 @@ namespace Scribe.Gui.ViewModel
 
         public IReactiveList<LogRecordViewModel> SelectedRecords { get; }
 
+        private async Task OpenLogFileRoutine(CancellationToken Cancellation)
+        {
+            using (_allRecords.SuppressChangeNotifications())
+            {
+                Cancellation.ThrowIfCancellationRequested();
+                var openDialog = new OpenFileDialog
+                {
+                    Title = "Открыть лог-файл",
+                    DefaultExt = _logFileOpeners.First().Extension,
+                    Filter = string.Join("|", _logFileOpeners.Select(o => $"{o.Description} (*.{o.Extension})|*.{o.Extension}")) + "|All files (*.*)|*.*"
+                };
+                if (openDialog.ShowDialog() == true)
+                {
+                    var fileExt = Path.GetExtension(openDialog.FileName).ToLower();
+                    var opener = _logFileOpeners.FirstOrDefault(o => "." + o.Extension.ToLower() == fileExt);
+                    await opener.OpenFileAsync(openDialog.FileName, Cancellation).ConfigureAwait(true);
+                }
+            }
+        }
+
         private IEnumerable<ConnectedLogRecord> CreateConnectedLogRecord(IList<LogRecord> NewRecords)
         {
             foreach (var record in NewRecords)
             {
-                SourceViewModel source;
-                if (!_sourcesDictionary.TryGetValue(record.Source, out source))
-                {
-                    source = _sourceViewModelFactory.CreateInstance(record.Source);
-
-                    _sourcesDictionary.Add(record.Source, source);
-                    _sources.Add(source);
-                }
+                var source = _sourcesDictionary.GetOrAdd(
+                    record.Source,
+                    key =>
+                    {
+                        var s = _sourceViewModelFactory.CreateInstance(record.Source);
+                        _sources.Add(s);
+                        return s;
+                    });
                 yield return new ConnectedLogRecord(record, source);
             }
         }

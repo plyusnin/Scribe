@@ -44,6 +44,7 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" Name="Toolbar">
+                <Button Margin="2" Padding="15,3" Content="Открыть" Command="{Binding OpenLogFile}" />
                 <ToggleButton Margin="2" Padding="15,3" Name="AutoscrollSwitch" Content="Автоскролл" IsChecked="True" />
                 <Button Margin="2" Padding="15,3" Content="Очистить" Command="{Binding Clear}" />
             </StackPanel>

@@ -3,9 +3,10 @@ using System.Linq;
 using System.Reactive;
 using System.Windows;
 using System.Windows.Controls;
+using Scribe.EventsLayer;
 using Scribe.EventsLayer.NLog;
 using Scribe.Gui.ViewModel;
-using Scribe.RecordsLayer;  
+using Scribe.RecordsLayer;
 
 namespace Scribe.Gui
 {
@@ -18,7 +19,10 @@ namespace Scribe.Gui
         {
             InitializeComponent();
             var settings = Settings.Load();
-            var viewModel = new MainViewModel(new NLogRecordsSource(new UdpNLogSource()), new SourceViewModelFactory(settings));
+            var fileNLogSource = new FileNLogSource();
+            var viewModel = new MainViewModel(new NLogRecordsSource(new CompositeLogSource<NLogEvent>(new UdpNLogSource(), fileNLogSource)),
+                                              new SourceViewModelFactory(settings),
+                                              new ILogFileOpener[] { fileNLogSource });
             DataContext = viewModel;
             viewModel.Records.ShouldReset.Subscribe(OnLogReset);
         }
@@ -34,8 +38,8 @@ namespace Scribe.Gui
             //           ?? (LogBox.Items.Count > 0 ? LogBox.Items[LogBox.Items.Count - 1] : null);
 
             var item = LogBox.Items
-                                .OfType<LogRecordViewModel>()
-                                .FirstOrDefault(l => l.Time >= _lastSelection)
+                             .OfType<LogRecordViewModel>()
+                             .FirstOrDefault(l => l.Time >= _lastSelection)
                        ?? (LogBox.Items.Count > 0 ? LogBox.Items[LogBox.Items.Count - 1] : null);
 
             if (item != null)
@@ -47,7 +51,6 @@ namespace Scribe.Gui
 
         private void LogBox_OnSelectionChanged(object Sender, SelectionChangedEventArgs E)
         {
-
             if (LogBox.SelectedItems.Count > 0)
             {
                 var sel = LogBox.SelectedItems
