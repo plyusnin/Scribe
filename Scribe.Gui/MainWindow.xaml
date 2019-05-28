@@ -67,9 +67,16 @@
                 <ListView Grid.Row="0" ItemsSource="{Binding Records}" FontFamily="Consolas"
                           Name="LogBox" SelectionChanged="LogBox_OnSelectionChanged">
                     <ListView.Resources>
-                        <Style x:Key="LogItemStyle">
+                        <Style x:Key="LogItemStyle" TargetType="ListViewItem">
                             <Setter Property="TextBlock.Foreground"
                                     Value="{Binding Path=Source.ColorIndex, Converter={StaticResource ColorConverter}}" />
+                            <EventSetter Event="MouseDoubleClick" Handler="OnRecordItemDoubleClick" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsHighlighted}" Value="True">
+                                    <Setter Property="FontWeight" Value="ExtraBold" />
+                                    <Setter Property="Background" Value="#7C56F600" />
+                                </DataTrigger>
+                            </Style.Triggers>
                         </Style>
                     </ListView.Resources>
                     <ListView.ItemContainerStyleSelector >

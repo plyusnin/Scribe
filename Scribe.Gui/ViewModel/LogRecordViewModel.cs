@@ -1,10 +1,13 @@
 ﻿using System;
+using ReactiveUI;
 using Scribe.EventsLayer;
 
 namespace Scribe.Gui.ViewModel
 {
-    public class LogRecordViewModel
+    public class LogRecordViewModel : ReactiveObject
     {
+        private bool _isHighlighted;
+
         public LogRecordViewModel(DateTime Time, SourceViewModel Source, string Message, LogLevel Level, string Exception)
         {
             this.Time = Time;
@@ -19,5 +22,11 @@ namespace Scribe.Gui.ViewModel
         public string Message { get; }
         public LogLevel Level { get; }
         public string Exception { get; }
+
+        public bool IsHighlighted
+        {
+            get => _isHighlighted;
+            set => this.RaiseAndSetIfChanged(ref _isHighlighted, value);
+        }
     }
 }

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reactive;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using Scribe.EventsLayer;
 using Scribe.EventsLayer.NLog;
 using Scribe.Gui.ViewModel;
@@ -59,6 +60,13 @@ namespace Scribe.Gui
 
                 _lastSelection = sel.Time;
             }
+        }
+
+        private void OnRecordItemDoubleClick(object Sender, MouseButtonEventArgs E)
+        {
+            var item = (ListViewItem)Sender;
+            var record = (LogRecordViewModel)item.DataContext;
+            record.IsHighlighted = !record.IsHighlighted;
         }
     }
 }
