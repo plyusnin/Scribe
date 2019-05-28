@@ -132,6 +132,8 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <Resource Include="Fonts\Font Awesome 5 Free-Regular-400.otf" />
+    <Resource Include="Fonts\Font Awesome 5 Free-Solid-900.otf" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

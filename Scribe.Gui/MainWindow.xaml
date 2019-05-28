@@ -43,14 +43,123 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <StackPanel Orientation="Horizontal" Name="Toolbar">
-                <Button Margin="2" Padding="15,3" Content="Открыть" Command="{Binding OpenLogFile}" />
-                <ToggleButton Margin="2" Padding="15,3" Name="AutoscrollSwitch" Content="Автоскролл" IsChecked="True" />
-                <Button Margin="2" Padding="15,3" Content="Очистить" Command="{Binding Clear}" />
+            <StackPanel Orientation="Horizontal" Name="Toolbar" Margin="2">
+                <StackPanel.Resources>
+                    <Style TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
+                        <Setter Property="Margin" Value="2" />
+                        <Setter Property="Padding" Value="5" />
+                        <Setter Property="FontSize" Value="16" />
+                        <Setter Property="MinWidth" Value="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Name="Root"
+                                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                            CornerRadius="2" Padding="{TemplateBinding Padding}"
+                                            Background="{TemplateBinding Foreground}" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1">
+                                        <ContentPresenter Name="Content"  ContentSource="{TemplateBinding Content}"
+                                                          HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <ContentPresenter.Effect>
+                                                <DropShadowEffect Opacity="0.1" ShadowDepth="1" BlurRadius="3" />
+                                            </ContentPresenter.Effect>
+                                        </ContentPresenter>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="False">
+                                            <Setter TargetName="Root" Property="BorderBrush" Value="Transparent" />
+                                        </Trigger>
+                                        <Trigger Property="IsPressed" Value="False">
+                                            <Setter TargetName="Root" Property="Background" Value="Transparent" />
+                                        </Trigger>
+                                        <Trigger Property="IsPressed" Value="True">
+                                            <Setter TargetName="Content" Property="TextBlock.Foreground" Value="White" />
+                                        </Trigger>
+                                        <Trigger Property="IsEnabled" Value="False">
+                                            <Setter TargetName="Root" Property="Opacity" Value="0.3" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                    <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource {x:Static ToolBar.ToggleButtonStyleKey}}">
+                        <Setter Property="Margin" Value="0" />
+                        <Setter Property="Padding" Value="5" />
+                        <Setter Property="FontSize" Value="16" />
+                        <Setter Property="MinWidth" Value="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ToggleButton">
+                                    <Grid Name="Root">
+                                        <Rectangle Name="Decoration"
+                                                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                                   RadiusX="2" RadiusY="{Binding RelativeSource={RelativeSource Self}, Path=RadiusX}"
+                                                   Fill="{TemplateBinding Foreground}"
+                                                   Stroke="{TemplateBinding Foreground}" StrokeThickness="1" />
+                                        <ContentPresenter Name="Content" ContentSource="{TemplateBinding Content}"
+                                                          HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                          Margin="{TemplateBinding Padding}">
+                                            <ContentPresenter.Effect>
+                                                <DropShadowEffect Opacity="0.1" ShadowDepth="1" BlurRadius="3" />
+                                            </ContentPresenter.Effect>
+                                        </ContentPresenter>
+                                    </Grid>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="False">
+                                            <Setter TargetName="Decoration" Property="Stroke" Value="Transparent" />
+                                        </Trigger>
+                                        <Trigger Property="IsChecked" Value="False">
+                                            <Setter TargetName="Decoration" Property="Fill" Value="Transparent" />
+                                        </Trigger>
+                                        <Trigger Property="IsChecked" Value="True">
+                                            <Setter TargetName="Content" Property="TextBlock.Foreground" Value="White" />
+                                            <Trigger.EnterActions>
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <DoubleAnimation Storyboard.TargetName="Decoration"
+                                                                         Storyboard.TargetProperty="RadiusX"
+                                                                         To="15" Duration="0:0:0.4">
+                                                            <DoubleAnimation.EasingFunction>
+                                                                <BounceEase />
+                                                            </DoubleAnimation.EasingFunction>
+                                                        </DoubleAnimation>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </Trigger.EnterActions>
+                                            <Trigger.ExitActions>
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <DoubleAnimation Storyboard.TargetName="Decoration"
+                                                                         Storyboard.TargetProperty="RadiusX"
+                                                                         Duration="0:0:0.2">
+                                                            <DoubleAnimation.EasingFunction>
+                                                                <PowerEase />
+                                                            </DoubleAnimation.EasingFunction>
+                                                        </DoubleAnimation>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </Trigger.ExitActions>
+                                        </Trigger>
+                                        <Trigger Property="IsEnabled" Value="False">
+                                            <Setter TargetName="Root" Property="Opacity" Value="0.3" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </StackPanel.Resources>
+                <ToggleButton Name="AutoscrollSwitch" IsChecked="True" Foreground="#4F9E63"
+                              Content="" FontFamily="/Fonts/#Font Awesome 5 Free Regular" />
+                <Rectangle Width="18" />
+                <Button Command="{Binding OpenLogFile}" Foreground="#BB820E"
+                        Content="" FontFamily="/Fonts/#Font Awesome 5 Free Solid" />
+                <Button Command="{Binding Clear}" Foreground="#590EBB"
+                        Content="" FontFamily="/Fonts/#Font Awesome 5 Free Regular" />
             </StackPanel>
-            <DockPanel Grid.Column="1">
-                <Label Content="Поиск:" DockPanel.Dock="Left" />
-                <TextBox Text="{Binding QuickFilter, UpdateSourceTrigger=PropertyChanged}" Margin="2" MinWidth="170" Padding="2" />
+            <DockPanel Grid.Column="1" VerticalAlignment="Center">
+                <Label Content="Поиск:" DockPanel.Dock="Left" VerticalAlignment="Center" />
+                <TextBox Text="{Binding QuickFilter, UpdateSourceTrigger=PropertyChanged}" Margin="2" MinWidth="170" Padding="3" />
             </DockPanel>
         </Grid>
         <Grid Grid.Row="1" Margin="2">
@@ -110,8 +219,8 @@
                         <GridView>
                             <GridViewColumn Header="Время" Width="100"
                                             DisplayMemberBinding="{Binding Time, StringFormat='HH:mm:ss.fff'}" />
-                            <GridViewColumn Header="Источник" DisplayMemberBinding="{Binding Path=Source.Name}" Width="180" />
                             <GridViewColumn Header="Уровень" DisplayMemberBinding="{Binding Path=Level}" Width="70" />
+                            <GridViewColumn Header="Источник" DisplayMemberBinding="{Binding Path=Source.Name}" Width="180" />
                             <GridViewColumn Header="Сообщение" DisplayMemberBinding="{Binding Message}" Width="800" />
                         </GridView>
                     </ListView.View>
