@@ -74,6 +74,11 @@ namespace Scribe.Gui.ViewModel
                                  .ObserveOnDispatcher()
                                  .Select(x => Unit.Default));
 
+            HighlightRecord = ReactiveCommand.Create<LogRecordViewModel>(rec => rec.IsHighlighted = !rec.IsHighlighted);
+            HighlightedRecords = Records.CreateDerivedCollection(x => x, x => x.IsHighlighted,
+                                                                 scheduler: DispatcherScheduler.Current,
+                                                                 signalReset: HighlightRecord);
+
             SelectedRecords = new ReactiveList<LogRecordViewModel>();
 
             Clear = ReactiveCommand.Create(() => _allRecords.Clear(),
@@ -94,6 +99,10 @@ namespace Scribe.Gui.ViewModel
                 .Select(x => x?.Exception != null)
                 .ToProperty(this, x => x.HasExceptionToShow, out _hasExceptionToShow);
         }
+
+        public ReactiveCommand<LogRecordViewModel, Unit> HighlightRecord { get; }
+
+        public IReactiveDerivedList<LogRecordViewModel> HighlightedRecords { get; }
 
         public ReactiveCommand<Unit, Unit> OpenLogFile { get; }
 
@@ -122,19 +131,23 @@ namespace Scribe.Gui.ViewModel
 
         private async Task OpenLogFileRoutine(CancellationToken Cancellation)
         {
-            using (_allRecords.SuppressChangeNotifications())
+            Cancellation.ThrowIfCancellationRequested();
+            var openDialog = new OpenFileDialog
             {
-                Cancellation.ThrowIfCancellationRequested();
-                var openDialog = new OpenFileDialog
+                Title = "Открыть лог-файл",
+                DefaultExt = _logFileOpeners.First().Extension,
+                Filter = string.Join("|", _logFileOpeners.Select(o => $"{o.Description} (*.{o.Extension})|*.{o.Extension}")) + "|All files (*.*)|*.*"
+            };
+            if (openDialog.ShowDialog() == true)
+            {
+                var fileExt = Path.GetExtension(openDialog.FileName).ToLower();
+                var opener = _logFileOpeners.FirstOrDefault(o => "." + o.Extension.ToLower() == fileExt)
+                             ?? throw new ApplicationException($"Файлы формата {fileExt} не поддерживаются");
+
+                using (_allRecords.SuppressChangeNotifications())
+                //using (Records.SuppressChangeNotifications())
+                //using (HighlightedRecords.SuppressChangeNotifications())
                 {
-                    Title = "Открыть лог-файл",
-                    DefaultExt = _logFileOpeners.First().Extension,
-                    Filter = string.Join("|", _logFileOpeners.Select(o => $"{o.Description} (*.{o.Extension})|*.{o.Extension}")) + "|All files (*.*)|*.*"
-                };
-                if (openDialog.ShowDialog() == true)
-                {
-                    var fileExt = Path.GetExtension(openDialog.FileName).ToLower();
-                    var opener = _logFileOpeners.FirstOrDefault(o => "." + o.Extension.ToLower() == fileExt);
                     await opener.OpenFileAsync(openDialog.FileName, Cancellation).ConfigureAwait(true);
                 }
             }

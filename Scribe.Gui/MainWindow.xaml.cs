@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -15,17 +16,18 @@ namespace Scribe.Gui
     public partial class MainWindow : Window
     {
         private DateTime _lastSelection = DateTime.Now;
+        private MainViewModel _viewModel;
 
         public MainWindow()
         {
             InitializeComponent();
             var settings = Settings.Load();
             var fileNLogSource = new FileNLogSource();
-            var viewModel = new MainViewModel(new NLogRecordsSource(new CompositeLogSource<NLogEvent>(new UdpNLogSource(), fileNLogSource)),
-                                              new SourceViewModelFactory(settings),
-                                              new ILogFileOpener[] { fileNLogSource });
-            DataContext = viewModel;
-            viewModel.Records.ShouldReset.Subscribe(OnLogReset);
+            _viewModel = new MainViewModel(new NLogRecordsSource(new CompositeLogSource<NLogEvent>(new UdpNLogSource(), fileNLogSource)),
+                                           new SourceViewModelFactory(settings),
+                                           new ILogFileOpener[] { fileNLogSource });
+            DataContext = _viewModel;
+            _viewModel.Records.ShouldReset.Subscribe(OnLogReset);
         }
 
         private void OnLogReset(Unit Unit)
@@ -66,7 +68,23 @@ namespace Scribe.Gui
         {
             var item = (ListViewItem)Sender;
             var record = (LogRecordViewModel)item.DataContext;
-            record.IsHighlighted = !record.IsHighlighted;
+            _viewModel.HighlightRecord.Execute(record).GetAwaiter().GetResult();
+        }
+
+        private void CommandBinding_OnExecuted(object Sender, ExecutedRoutedEventArgs E)
+        {
+            var item = E.Parameter;
+            if (item != null)
+            {
+                LogBox.SelectedItem = item;
+                LogBox.ScrollIntoView(item);
+            }
+            BookmarksButton.IsChecked = false;
+        }
+
+        private void BookmarksButton_OnClick(object Sender, RoutedEventArgs E)
+        {
+            //((Button)Sender).ContextMenu.IsOpen = true;
         }
     }
 }

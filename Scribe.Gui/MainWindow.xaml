@@ -40,8 +40,8 @@
         </Grid.RowDefinitions>
         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" Name="Toolbar" Margin="2">
                 <StackPanel.Resources>
@@ -49,15 +49,17 @@
                         <Setter Property="Margin" Value="2" />
                         <Setter Property="Padding" Value="5" />
                         <Setter Property="FontSize" Value="16" />
-                        <Setter Property="MinWidth" Value="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}" />
+                        <Setter Property="MinWidth"
+                                Value="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}" />
                         <Setter Property="Template">
                             <Setter.Value>
                                 <ControlTemplate TargetType="Button">
                                     <Border Name="Root"
                                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                                             CornerRadius="2" Padding="{TemplateBinding Padding}"
-                                            Background="{TemplateBinding Foreground}" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1">
-                                        <ContentPresenter Name="Content"  ContentSource="{TemplateBinding Content}"
+                                            Background="{TemplateBinding Foreground}"
+                                            BorderBrush="{TemplateBinding Foreground}" BorderThickness="1">
+                                        <ContentPresenter Name="Content" ContentSource="{TemplateBinding Content}"
                                                           HorizontalAlignment="Center" VerticalAlignment="Center">
                                             <ContentPresenter.Effect>
                                                 <DropShadowEffect Opacity="0.1" ShadowDepth="1" BlurRadius="3" />
@@ -82,18 +84,21 @@
                             </Setter.Value>
                         </Setter>
                     </Style>
-                    <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource {x:Static ToolBar.ToggleButtonStyleKey}}">
+                    <Style TargetType="{x:Type ToggleButton}"
+                           BasedOn="{StaticResource {x:Static ToolBar.ToggleButtonStyleKey}}">
                         <Setter Property="Margin" Value="0" />
                         <Setter Property="Padding" Value="5" />
                         <Setter Property="FontSize" Value="16" />
-                        <Setter Property="MinWidth" Value="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}" />
+                        <Setter Property="MinWidth"
+                                Value="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}" />
                         <Setter Property="Template">
                             <Setter.Value>
                                 <ControlTemplate TargetType="ToggleButton">
                                     <Grid Name="Root">
                                         <Rectangle Name="Decoration"
                                                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                                                   RadiusX="2" RadiusY="{Binding RelativeSource={RelativeSource Self}, Path=RadiusX}"
+                                                   RadiusX="2"
+                                                   RadiusY="{Binding RelativeSource={RelativeSource Self}, Path=RadiusX}"
                                                    Fill="{TemplateBinding Foreground}"
                                                    Stroke="{TemplateBinding Foreground}" StrokeThickness="1" />
                                         <ContentPresenter Name="Content" ContentSource="{TemplateBinding Content}"
@@ -150,16 +155,44 @@
                     </Style>
                 </StackPanel.Resources>
                 <ToggleButton Name="AutoscrollSwitch" IsChecked="True" Foreground="#4F9E63"
+                              ToolTip="Автоскролл"
                               Content="" FontFamily="/Fonts/#Font Awesome 5 Free Regular" />
                 <Rectangle Width="18" />
-                <Button Command="{Binding OpenLogFile}" Foreground="#BB820E"
+                <Button Command="{Binding OpenLogFile}" Foreground="#BB820E" ToolTip="Загрузить лог из файла"
                         Content="" FontFamily="/Fonts/#Font Awesome 5 Free Solid" />
-                <Button Command="{Binding Clear}" Foreground="#590EBB"
+                <Button Command="{Binding Clear}" Foreground="#590EBB" ToolTip="Очистить лог"
                         Content="" FontFamily="/Fonts/#Font Awesome 5 Free Regular" />
+                <Rectangle Width="18" />
+                <ToggleButton Foreground="#59BB0E" Content="" FontFamily="/Fonts/#Font Awesome 5 Free Solid"
+                              Name="BookmarksButton"
+                              Click="BookmarksButton_OnClick" ToolTip="Список закладок" />
+                <Popup IsOpen="{Binding ElementName=BookmarksButton, Path=IsChecked}"
+                       PlacementTarget="{Binding ElementName=BookmarksButton}"
+                       Placement="Bottom" StaysOpen="False" PopupAnimation="Fade" AllowsTransparency="True"
+                       VerticalOffset="-10" HorizontalOffset="15">
+                    <ItemsControl ItemsSource="{Binding HighlightedRecords}" Background="White"
+                                  BorderBrush="{Binding ElementName=BookmarksButton, Path=Foreground}"
+                                  BorderThickness="1"
+                                  MaxWidth="400" Margin="40">
+                        <ItemsControl.Effect>
+                            <DropShadowEffect Opacity="0.2" BlurRadius="30" Direction="-90" />
+                        </ItemsControl.Effect>
+                        <ItemsControl.CommandBindings>
+                            <CommandBinding Command="NavigateJournal" Executed="CommandBinding_OnExecuted" />
+                        </ItemsControl.CommandBindings>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <MenuItem Header="{Binding Message}" Command="NavigateJournal"
+                                          CommandParameter="{Binding}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Popup>
             </StackPanel>
             <DockPanel Grid.Column="1" VerticalAlignment="Center">
                 <Label Content="Поиск:" DockPanel.Dock="Left" VerticalAlignment="Center" />
-                <TextBox Text="{Binding QuickFilter, UpdateSourceTrigger=PropertyChanged}" Margin="2" MinWidth="170" Padding="3" />
+                <TextBox Text="{Binding QuickFilter, UpdateSourceTrigger=PropertyChanged}" Margin="2" MinWidth="170"
+                         Padding="3" />
             </DockPanel>
         </Grid>
         <Grid Grid.Row="1" Margin="2">
@@ -188,7 +221,7 @@
                             </Style.Triggers>
                         </Style>
                     </ListView.Resources>
-                    <ListView.ItemContainerStyleSelector >
+                    <ListView.ItemContainerStyleSelector>
                         <local:ItemLevelStyleSelector DefaultStyle="{StaticResource LogItemStyle}">
                             <local:ItemLevelStyleSelector.TraceStyle>
                                 <Style TargetType="ListViewItem" BasedOn="{StaticResource LogItemStyle}">
@@ -220,7 +253,8 @@
                             <GridViewColumn Header="Время" Width="100"
                                             DisplayMemberBinding="{Binding Time, StringFormat='HH:mm:ss.fff'}" />
                             <GridViewColumn Header="Уровень" DisplayMemberBinding="{Binding Path=Level}" Width="70" />
-                            <GridViewColumn Header="Источник" DisplayMemberBinding="{Binding Path=Source.Name}" Width="180" />
+                            <GridViewColumn Header="Источник" DisplayMemberBinding="{Binding Path=Source.Name}"
+                                            Width="180" />
                             <GridViewColumn Header="Сообщение" DisplayMemberBinding="{Binding Message}" Width="800" />
                         </GridView>
                     </ListView.View>
@@ -241,9 +275,9 @@
                     </TextBox.Background>
                 </TextBox>
             </Grid>
-            
+
             <GridSplitter Grid.Column="1" ResizeDirection="Columns" Width="2" ResizeBehavior="PreviousAndNext" />
-            
+
             <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
@@ -283,13 +317,15 @@
                                   SelectedIndex="{Binding Path=ColorIndex}">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
-                                    <Rectangle Height="18" Width="100" Fill="{Binding}" Stroke="Black" StrokeThickness="1" />
+                                    <Rectangle Height="18" Width="100" Fill="{Binding}" Stroke="Black"
+                                               StrokeThickness="1" />
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>
                         </ComboBox>
                         <TextBlock Grid.Row="1" Grid.Column="0" Text="Уровни:" HorizontalAlignment="Right"
                                    VerticalAlignment="Top" Margin="4,2" />
-                        <ItemsControl Grid.Row="1" Grid.Column="1" Margin="2" ItemsSource="{Binding Path=DisplayLogLevels}"
+                        <ItemsControl Grid.Row="1" Grid.Column="1" Margin="2"
+                                      ItemsSource="{Binding Path=DisplayLogLevels}"
                                       IsTabStop="False" Focusable="False">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="viewModel:LogLevelFilterViewModel">
@@ -311,7 +347,8 @@
             <StatusBarItem>
                 <TextBlock>
                     <Run Text="Интервал:" />
-                    <Run Text="{Binding SelectedInterval.TotalSeconds, Mode=OneWay, StringFormat='F3'}" FontWeight="SemiBold" />
+                    <Run Text="{Binding SelectedInterval.TotalSeconds, Mode=OneWay, StringFormat='F3'}"
+                         FontWeight="SemiBold" />
                     <Run Text="сек." />
                 </TextBlock>
             </StatusBarItem>
