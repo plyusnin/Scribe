@@ -1,14 +1,14 @@
-﻿<Window x:Class="Scribe.Gui.MainWindow"
+﻿<Window x:Class="Scribe.Wpf.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Scribe.Gui"
-        xmlns:viewModel="clr-namespace:Scribe.Gui.ViewModel"
+        xmlns:local="clr-namespace:Scribe.Wpf"
+        xmlns:viewModel="clr-namespace:Scribe.Wpf.ViewModel"
         xmlns:reactiveUi="clr-namespace:ReactiveUI;assembly=ReactiveUI"
-        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
-        xmlns:converters="clr-namespace:Scribe.Gui.Converters"
-        xmlns:behaviors="clr-namespace:Scribe.Gui.Behaviors"
+        xmlns:converters="clr-namespace:Scribe.Wpf.Converters"
+        xmlns:behaviors="clr-namespace:Scribe.Wpf.Behaviors"
+        xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         SnapsToDevicePixels="True" TextOptions.TextFormattingMode="Display" UseLayoutRounding="True"
         Title="The Scribe" d:DataContext="{d:DesignInstance viewModel:MainViewModel}">
@@ -258,10 +258,10 @@
                             <GridViewColumn Header="Сообщение" DisplayMemberBinding="{Binding Message}" Width="800" />
                         </GridView>
                     </ListView.View>
-                    <i:Interaction.Behaviors>
+                    <b:Interaction.Behaviors>
                         <behaviors:AutoScrollBehavior IsActive="{Binding ElementName=AutoscrollSwitch, Path=IsChecked}" />
                         <behaviors:MultiSelectionBehavior SelectedItems="{Binding SelectedRecords}" />
-                    </i:Interaction.Behaviors>
+                    </b:Interaction.Behaviors>
                 </ListView>
                 <TextBox Grid.Row="1" IsReadOnly="True" FontFamily="Consolas"
                          Padding="2,5,0,5" Margin="0,2,0,0" VerticalScrollBarVisibility="Visible"

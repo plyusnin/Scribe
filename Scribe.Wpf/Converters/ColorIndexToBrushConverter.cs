@@ -7,7 +7,7 @@ using System.Windows.Data;
 using System.Windows.Markup;
 using System.Windows.Media;
 
-namespace Scribe.Gui.Converters
+namespace Scribe.Wpf.Converters
 {
     [ContentProperty("Brushes")]
     public class ColorIndexToBrushConverter : IValueConverter

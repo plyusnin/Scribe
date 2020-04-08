@@ -1,8 +1,9 @@
 ﻿using System;
 using ReactiveUI;
 using Scribe.EventsLayer;
+using Splat;
 
-namespace Scribe.Gui.ViewModel
+namespace Scribe.Wpf.ViewModel
 {
     public class LogRecordViewModel : ReactiveObject
     {

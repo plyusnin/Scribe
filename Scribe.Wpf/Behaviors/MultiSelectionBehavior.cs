@@ -2,9 +2,9 @@
 using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Interactivity;
+using Microsoft.Xaml.Behaviors;
 
-namespace Scribe.Gui.Behaviors
+namespace Scribe.Wpf.Behaviors
 {
     public class MultiSelectionBehavior : Behavior<ListBox>
     {

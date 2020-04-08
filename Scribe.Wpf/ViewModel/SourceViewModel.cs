@@ -6,7 +6,7 @@ using System.Reactive.Linq;
 using ReactiveUI;
 using Scribe.EventsLayer;
 
-namespace Scribe.Gui.ViewModel
+namespace Scribe.Wpf.ViewModel
 {
     public class SourceViewModel : ReactiveObject
     {

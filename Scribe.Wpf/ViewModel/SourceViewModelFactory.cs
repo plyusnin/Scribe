@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using ReactiveUI;
 
-namespace Scribe.Gui.ViewModel
+namespace Scribe.Wpf.ViewModel
 {
     public class SourceViewModelFactory
     {

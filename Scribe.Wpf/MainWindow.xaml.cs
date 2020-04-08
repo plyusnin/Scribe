@@ -7,10 +7,10 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Scribe.EventsLayer;
 using Scribe.EventsLayer.NLog;
-using Scribe.Gui.ViewModel;
 using Scribe.RecordsLayer;
+using Scribe.Wpf.ViewModel;
 
-namespace Scribe.Gui
+namespace Scribe.Wpf
 {
     /// <summary>Логика взаимодействия для MainWindow.xaml</summary>
     public partial class MainWindow : Window

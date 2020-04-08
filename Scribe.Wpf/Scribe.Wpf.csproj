@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <UseWPF>true</UseWPF>
+        <LangVersion>8</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Resource Include="..\!res\Icon\icon.ico">
+        <Link>icon.ico</Link>
+      </Resource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <SplashScreen Include="SplashScreen.jpg" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.19" />
+      <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+      <PackageReference Include="ReactiveUI" Version="11.3.1" />
+      <PackageReference Include="ReactiveUI.WPF" Version="11.3.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Scribe.Common\Scribe.Common.csproj" />
+    </ItemGroup>
+
+</Project>

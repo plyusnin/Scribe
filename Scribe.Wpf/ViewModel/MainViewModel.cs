@@ -14,7 +14,7 @@ using ReactiveUI;
 using Scribe.EventsLayer;
 using Scribe.RecordsLayer;
 
-namespace Scribe.Gui.ViewModel
+namespace Scribe.Wpf.ViewModel
 {
     public class MainViewModel : ReactiveObject
     {

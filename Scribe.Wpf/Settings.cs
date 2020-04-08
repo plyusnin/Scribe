@@ -3,16 +3,18 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Xml;
 using Newtonsoft.Json;
 using ReactiveUI;
 using Scribe.EventsLayer;
 
-namespace Scribe.Gui
+namespace Scribe.Wpf
 {
     public class Settings : ReactiveObject, IDisposable
     {
-        private static readonly string _settingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                                                                    "Saut", "The Scribe", "Settings.json");
+        private static readonly string _settingsPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "Saut", "The Scribe", "Settings.json");
 
         private readonly IDisposable _savingConnection;
 
@@ -24,7 +26,8 @@ namespace Scribe.Gui
                 ChangeTrackingEnabled = true
             };
 
-            _savingConnection = SourcesOptions.ItemChanged.Select(x => Unit.Default).Merge(SourcesOptions.Changed.Select(x => Unit.Default))
+            _savingConnection = SourcesOptions.ItemChanged.Select(x => Unit.Default)
+                                              .Merge(SourcesOptions.Changed.Select(x => Unit.Default))
                                               .Subscribe(_ => Save());
         }
 
@@ -46,14 +49,16 @@ namespace Scribe.Gui
                 Directory.CreateDirectory(Path.GetDirectoryName(_settingsPath));
                 File.WriteAllText(_settingsPath, json);
             }
-            catch (Exception) { }
+            catch (Exception)
+            {
+            }
         }
 
         public static Settings Load()
         {
             try
             {
-                var json = File.ReadAllText(_settingsPath);
+                var json     = File.ReadAllText(_settingsPath);
                 var settings = JsonConvert.DeserializeObject<Settings>(json);
                 return settings;
             }
@@ -72,12 +77,11 @@ namespace Scribe.Gui
 
         public SourceOptions(string Name)
         {
-            this.Name = Name;
+            this.Name      = Name;
             _hideLogLevels = new List<LogLevel>();
         }
 
-        [JsonProperty(PropertyName = "Name")]
-        public string Name { get; }
+        [JsonProperty(PropertyName = "Name")] public string Name { get; }
 
         [JsonProperty(PropertyName = "IsEnabled")]
         public bool IsEnabled
