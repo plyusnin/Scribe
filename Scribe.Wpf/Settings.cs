@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Xml;
+using DynamicData;
+using DynamicData.Binding;
 using Newtonsoft.Json;
 using ReactiveUI;
 using Scribe.EventsLayer;
+using Formatting = Newtonsoft.Json.Formatting;
 
 namespace Scribe.Wpf
 {
@@ -17,22 +21,22 @@ namespace Scribe.Wpf
             "Saut", "The Scribe", "Settings.json");
 
         private readonly IDisposable _savingConnection;
+        private IObservable<IChangeSet<SourceOptions>> _sourcesCache;
 
         [JsonConstructor]
         public Settings(IList<SourceOptions> Sources)
         {
-            SourcesOptions = new ReactiveList<SourceOptions>(Sources)
-            {
-                ChangeTrackingEnabled = true
-            };
+            SourcesOptions = new ObservableCollection<SourceOptions>(Sources);
+            _sourcesCache  = SourcesOptions.ToObservableChangeSet();
 
-            _savingConnection = SourcesOptions.ItemChanged.Select(x => Unit.Default)
-                                              .Merge(SourcesOptions.Changed.Select(x => Unit.Default))
-                                              .Subscribe(_ => Save());
+            _sourcesCache.Select(_ => Unit.Default)
+                         .Merge(_sourcesCache.WhenAnyPropertyChanged().Select(_ => Unit.Default))
+                         .Throttle(TimeSpan.FromSeconds(1))
+                         .Subscribe(_ => Save());
         }
 
         [JsonProperty(PropertyName = "Sources")]
-        public IReactiveList<SourceOptions> SourcesOptions { get; }
+        public ObservableCollection<SourceOptions> SourcesOptions { get; }
 
         public static Settings Default => new Settings(new List<SourceOptions>());
 

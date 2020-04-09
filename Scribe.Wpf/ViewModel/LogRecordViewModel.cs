@@ -1,7 +1,6 @@
 ﻿using System;
 using ReactiveUI;
 using Scribe.EventsLayer;
-using Splat;
 
 namespace Scribe.Wpf.ViewModel
 {

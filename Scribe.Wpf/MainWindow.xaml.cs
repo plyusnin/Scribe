@@ -27,7 +27,7 @@ namespace Scribe.Wpf
                                            new SourceViewModelFactory(settings),
                                            new ILogFileOpener[] { fileNLogSource });
             DataContext = _viewModel;
-            _viewModel.Records.ShouldReset.Subscribe(OnLogReset);
+            //_viewModel.Records.ShouldReset.Subscribe(OnLogReset);
         }
 
         private void OnLogReset(Unit Unit)
