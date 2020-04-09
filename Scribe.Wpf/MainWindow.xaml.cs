@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using Scribe.EventsLayer;
 using Scribe.EventsLayer.NLog;
@@ -85,6 +87,12 @@ namespace Scribe.Wpf
         private void BookmarksButton_OnClick(object Sender, RoutedEventArgs E)
         {
             //((Button)Sender).ContextMenu.IsOpen = true;
+        }
+
+        private void ScrollBar_OnScroll(object Sender, ScrollEventArgs E)
+        {
+            
+            
         }
     }
 }

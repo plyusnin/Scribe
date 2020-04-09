@@ -206,8 +206,13 @@
                     <RowDefinition Height="*" MinHeight="300" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <ListView Grid.Row="0" ItemsSource="{Binding Records}" FontFamily="Consolas"
-                          Name="LogBox" SelectionChanged="LogBox_OnSelectionChanged">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ListView Grid.Row="0" Grid.Column="0" ItemsSource="{Binding Records}" FontFamily="Consolas"
+                          Name="LogBox" SelectionChanged="LogBox_OnSelectionChanged"
+                          ScrollViewer.VerticalScrollBarVisibility="Disabled">
                     <ListView.Resources>
                         <Style x:Key="LogItemStyle" TargetType="ListViewItem">
                             <Setter Property="TextBlock.Foreground"
@@ -263,7 +268,10 @@
                         <behaviors:MultiSelectionBehavior SelectedItems="{Binding SelectedRecords}" />
                     </b:Interaction.Behaviors>
                 </ListView>
-                <TextBox Grid.Row="1" IsReadOnly="True" FontFamily="Consolas"
+                <ScrollBar Grid.Column="1" Grid.Row="0" Orientation="Vertical"
+                           Scroll="ScrollBar_OnScroll" ViewportSize="{Binding ViewportSize}"
+                            />
+                <TextBox Grid.Row="1" Grid.ColumnSpan="2" IsReadOnly="True" FontFamily="Consolas"
                          Padding="2,5,0,5" Margin="0,2,0,0" VerticalScrollBarVisibility="Visible"
                          Visibility="{Binding HasExceptionToShow, Converter={StaticResource btv}}"
                          Text="{Binding Path=SelectedRecord.Exception, Mode=OneWay}">

@@ -45,25 +45,31 @@ namespace Scribe.Wpf.ViewModel
             _sourceViewModelFactory = SourceViewModelFactory;
             _logFileOpeners         = LogFileOpeners;
 
-            _sources.Connect()
-                    .Sort(SortExpressionComparer<SourceViewModel>.Ascending(s => s.Name))
-                    .ObserveOnDispatcher()
-                    .Bind(out _sourcesObservableCollection)
-                    .Subscribe();
-
-            OpenLogFile =
-                ReactiveCommand.CreateFromTask(OpenLogFileRoutine, outputScheduler: DispatcherScheduler.Current);
-            OpenLogFile.ThrownExceptions
-                       .Subscribe(e => MessageBox.Show(e.Message, "Ой!"));
-
-            var allRecords = new SourceList<ConnectedLogRecord>();
+            _recordsCache = new RecordsCache(SourceViewModelFactory);
 
             RecordsSource.Source
                          .Buffer(TimeSpan.FromMilliseconds(100))
                          .Where(list => list.Any())
-                         .Select(CreateConnectedLogRecord)
+                         .ObserveOn(TaskPoolScheduler.Default)
+                         .Subscribe(_recordsCache.PutRecords);
+
+            _recordsCache.Sources.Connect()
+                         .Sort(SortExpressionComparer<SourceViewModel>.Ascending(s => s.Name))
                          .ObserveOnDispatcher()
-                         .Subscribe(x => allRecords.Edit(list => list.AddRange(x)));
+                         .Bind(out _sourcesObservableCollection)
+                         .Subscribe();
+            
+            _recordsCache.VisibleRecords.Connect()
+                         .Sort(SortExpressionComparer<LogRecordViewModel>.Ascending(r => r.Id))
+                         .ObserveOnDispatcher()
+                         .Bind(out _recordsObservableCollection)
+                         .Subscribe();
+
+            OpenLogFile = ReactiveCommand.CreateFromTask(OpenLogFileRoutine,
+                                                         outputScheduler: DispatcherScheduler.Current);
+            OpenLogFile.ThrownExceptions
+                       .Subscribe(e => MessageBox.Show(e.Message, "Ой!"));
+
 
             var quickFilter = this.WhenAnyValue(x => x.QuickFilter)
                                   .Throttle(TimeSpan.FromMilliseconds(200))
@@ -74,39 +80,21 @@ namespace Scribe.Wpf.ViewModel
 
             quickFilter.Connect();
 
-            var records = allRecords.Connect()
-                                    .Transform(x => new LogRecordViewModel(
-                                                   x.Record.Time, x.Source, x.Record.Message, x.Record.Level,
-                                                   x.Record.Exception))
-                                    .AsObservableList();
-
-
-            // TODO: Не, так не годится. Это что он, на каждый элемент будет по Observable открывать?? На каждый элемент лога??
-            records.Connect()
-                   .FilterOnObservable(x => new[]
-                    {
-                        x.Source.IsSelectedObservable,
-                        quickFilter.Select(f => f(x.Message)),
-                        //x.Source.SelectedLevels.Contains(x.Level)
-                    }.CombineLatest(val => val.All(a => a)))
-                   .ObserveOnDispatcher()
-                   .Bind(out _recordsObservableCollection)
-                   .Subscribe();
 
             HighlightRecord = ReactiveCommand.Create<LogRecordViewModel>(rec => rec.IsHighlighted = !rec.IsHighlighted);
-            records.Connect()
-                   .AutoRefresh(x => x.IsHighlighted)
-                   .Filter(x => x.IsHighlighted)
-                   .Sort(SortExpressionComparer<LogRecordViewModel>.Ascending(x => x.Time))
-                   .ObserveOnDispatcher()
-                   .Bind(out _highlightedRecords)
-                   .Subscribe();
+            // records.Connect()
+            //        .AutoRefresh(x => x.IsHighlighted)
+            //        .Filter(x => x.IsHighlighted)
+            //        .Sort(SortExpressionComparer<LogRecordViewModel>.Ascending(x => x.Time))
+            //        .ObserveOnDispatcher()
+            //        .Bind(out _highlightedRecords)
+            //        .Subscribe();
 
             SelectedRecords = new ObservableCollection<LogRecordViewModel>();
 
-            Clear = ReactiveCommand.Create(() => allRecords.Clear(),
-                                           allRecords.Connect().IsEmpty().Select(e => !e),
-                                           DispatcherScheduler.Current);
+            // Clear = ReactiveCommand.Create(() => allRecords.Clear(),
+            //                                allRecords.Connect().IsEmpty().Select(e => !e),
+            //                                DispatcherScheduler.Current);
 
             SelectedRecords.ObserveCollectionChanges()
                            .Select(_ => SelectedRecords)
@@ -180,6 +168,7 @@ namespace Scribe.Wpf.ViewModel
         }
 
         private long _recordId = 0;
+        private RecordsCache _recordsCache;
 
         private IEnumerable<ConnectedLogRecord> CreateConnectedLogRecord(IList<LogRecord> NewRecords)
         {
