@@ -29,4 +29,11 @@
       <ProjectReference Include="..\Scribe.Common\Scribe.Common.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="Fonts\Font Awesome 5 Free-Regular-400.otf" />
+      <Resource Include="Fonts\Font Awesome 5 Free-Regular-400.otf" />
+      <None Remove="Fonts\Font Awesome 5 Free-Solid-900.otf" />
+      <Resource Include="Fonts\Font Awesome 5 Free-Solid-900.otf" />
+    </ItemGroup>
+
 </Project>
