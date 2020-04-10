@@ -58,9 +58,8 @@ namespace Scribe.Wpf.ViewModel
                          .ObserveOnDispatcher()
                          .Bind(out _sourcesObservableCollection)
                          .Subscribe();
-            
+
             _recordsCache.VisibleRecords.Connect()
-                         .Sort(SortExpressionComparer<LogRecordViewModel>.Ascending(r => r.Id))
                          .ObserveOnDispatcher()
                          .Bind(out _recordsObservableCollection)
                          .Subscribe();
@@ -71,14 +70,12 @@ namespace Scribe.Wpf.ViewModel
                        .Subscribe(e => MessageBox.Show(e.Message, "Ой!"));
 
 
-            var quickFilter = this.WhenAnyValue(x => x.QuickFilter)
-                                  .Throttle(TimeSpan.FromMilliseconds(200))
-                                  .Select<string, Func<string, bool>>(
-                                       qf => v => string.IsNullOrWhiteSpace(qf) ||
-                                                  v.IndexOf(qf, StringComparison.CurrentCultureIgnoreCase) >= 0)
-                                  .Publish();
-
-            quickFilter.Connect();
+            this.WhenAnyValue(x => x.QuickFilter)
+                .Throttle(TimeSpan.FromMilliseconds(200))
+                .Select<string, Func<string, bool>>(
+                     qf => v => string.IsNullOrWhiteSpace(qf) ||
+                                v.IndexOf(qf, StringComparison.CurrentCultureIgnoreCase) >= 0)
+                .Subscribe(f => _recordsCache.Filter(r => f(r.Message)));
 
 
             HighlightRecord = ReactiveCommand.Create<LogRecordViewModel>(rec => rec.IsHighlighted = !rec.IsHighlighted);
@@ -168,7 +165,7 @@ namespace Scribe.Wpf.ViewModel
         }
 
         private long _recordId = 0;
-        private RecordsCache _recordsCache;
+        private IRecordsCache _recordsCache;
 
         private IEnumerable<ConnectedLogRecord> CreateConnectedLogRecord(IList<LogRecord> NewRecords)
         {

@@ -9,6 +9,7 @@ using System.Reactive.Subjects;
 using System.Threading;
 using DynamicData;
 using DynamicData.Binding;
+using DynamicData.PLinq;
 using Scribe.RecordsLayer;
 using Scribe.Wpf.ViewModel;
 
@@ -20,17 +21,14 @@ namespace Scribe.Wpf
         IObservableList<LogRecordViewModel>       VisibleRecords { get; }
         IObservableCache<SourceViewModel, string> Sources        { get; }
 
-        void ScrollTo(ScrollingInformation Scrolling);
         void Filter(Func<LogRecordViewModel, bool> Filter);
     }
 
     public class RecordsCache : IRecordsCache
     {
-        private Subject<ScrollingInformation> _scrollingSubject = new Subject<ScrollingInformation>();
-        private Subject<Func<LogRecordViewModel, bool>> _filterSubject = new Subject<Func<LogRecordViewModel, bool>>();
-        private Subject<Unit> _itemsArrived = new Subject<Unit>();
+        private readonly Subject<Unit> _filterSubject = new Subject<Unit>();
 
-        private Dictionary<string, SourceViewModel> _sources;
+        private readonly Dictionary<string, SourceViewModel> _sources;
 
         private readonly SourceCache<SourceViewModel, string> _sourcesCache;
 
@@ -52,83 +50,96 @@ namespace Scribe.Wpf
             VisibleRecords = _visibleRecords.Connect()
                                             .AsObservableList();
 
-            Observable.CombineLatest(_scrollingSubject.StartWith(new ScrollingInformation(1, 100)),
-                                     _filterSubject.StartWith(_ => true),
-                                     _itemsArrived,
-                                     (scroll, filter, _) => new {scroll, filter})
-                      .ObserveOn(TaskPoolScheduler.Default)
-                      .Synchronize(_insertionLocker)
-                      .Subscribe(x => Refresh(x.scroll, x.filter));
+
+            _sourcesCache.Connect()
+                         .AutoRefresh(s => s.IsSelected)
+                         .AutoRefresh(s => s.SelectedLevels)
+                         .ToCollection()
+                         .Subscribe(x => { });
+            
+
+            new[]
+                {
+                    _sourcesCache.Connect()
+                                 .AutoRefresh(s => s.IsSelected)
+                                 .AutoRefresh(s => s.SelectedLevels)
+                                 .ToCollection()
+                                 .Select(_ => Unit.Default),
+
+
+                    _filterSubject
+                }
+               .Merge()
+               .ObserveOn(TaskPoolScheduler.Default)
+               .Synchronize(_insertionLocker)
+               .Subscribe(_ => Refresh());
         }
 
         private long _lastAssignedItemId = 0;
 
         public void PutRecords(IEnumerable<LogRecord> Records)
         {
-            lock (_insertionLocker)
+            try
             {
-                foreach (var record in Records)
+                var newItems = new List<LogRecordViewModel>();
+                lock (_insertionLocker)
                 {
-                    if (!_sources.TryGetValue(record.Source, out var source))
+                    foreach (var record in Records)
                     {
-                        source = _sourceViewModelFactory.CreateInstance(record.Source);
-                        _sources.Add(source.Name, source);
-                        _sourcesCache.AddOrUpdate(source);
+                        if (!_sources.TryGetValue(record.Source, out var source))
+                        {
+                            source = _sourceViewModelFactory.CreateInstance(record.Source);
+                            _sources.Add(source.Name, source);
+                            _sourcesCache.AddOrUpdate(source);
+                        }
+
+                        var recordViewModel = new LogRecordViewModel(Interlocked.Increment(ref _lastAssignedItemId),
+                                                                     record.Time, source, record.Message, record.Level,
+                                                                     record.Exception);
+
+                        newItems.Add(recordViewModel);
                     }
 
-                    var recordViewModel = new LogRecordViewModel(Interlocked.Increment(ref _lastAssignedItemId),
-                                                                 record.Time, source, record.Message, record.Level,
-                                                                 record.Exception);
-
-                    _records.Add(recordViewModel);
+                    _records.AddRange(newItems);
+                    _visibleRecords.AddRange(newItems.Where(_lastFilter));
                 }
-                _itemsArrived.OnNext(Unit.Default);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
             }
         }
 
         public IObservableList<LogRecordViewModel>       VisibleRecords { get; }
         public IObservableCache<SourceViewModel, string> Sources        { get; }
 
-        public void ScrollTo(ScrollingInformation Scrolling)
-        {
-            _scrollingSubject.OnNext(Scrolling);
-        }
-
         public void Filter(Func<LogRecordViewModel, bool> Filter)
         {
-            _filterSubject.OnNext(Filter);
+            _lastFilter = Filter;
+            _filterSubject.OnNext(Unit.Default);
         }
 
         private readonly SourceList<LogRecordViewModel> _visibleRecords;
+        private Func<LogRecordViewModel, bool> _lastFilter = _ => true;
 
-        private void Refresh(ScrollingInformation Scrolling, Func<LogRecordViewModel, bool> Filter)
+        private bool Filter(LogRecordViewModel Record)
         {
-            var results = new List<LogRecordViewModel>(Scrolling.Count);
-            var zeroId  = _records.FindIndex(r => r.Id == Scrolling.FirstElementId);
-            if (zeroId == -1)
-                zeroId = 0;
-
-            for (var i = zeroId; i < _records.Count && results.Count < Scrolling.Count; i++)
-                if (Filter(_records[i]))
-                    results.Add(_records[i]);
-
-            for (var i = zeroId - 1; i >= 0 && results.Count < Scrolling.Count; i--)
-                if (Filter(_records[i]))
-                    results.Add(_records[i]);
-
-            _visibleRecords.EditDiff(results);
-        }
-    }
-
-    public class ScrollingInformation
-    {
-        public ScrollingInformation(int FirstElementId, int Count)
-        {
-            this.FirstElementId = FirstElementId;
-            this.Count          = Count;
+            if (!Record.Source.IsSelected) return false;
+            if (!Record.Source.SelectedLevels.Contains(Record.Level)) return false;
+            return _lastFilter(Record);
         }
 
-        public int FirstElementId { get; }
-        public int Count          { get; }
+        private void Refresh()
+        {
+            var newItems = _records.AsParallel()
+                                   .Where(Filter)
+                                   .ToList();
+
+            _visibleRecords.Edit(items =>
+            {
+                items.Clear();
+                items.AddRange(newItems);
+            });
+        }
     }
 }

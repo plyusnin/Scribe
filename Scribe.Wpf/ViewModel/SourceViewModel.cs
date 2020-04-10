@@ -4,7 +4,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
@@ -17,7 +16,6 @@ namespace Scribe.Wpf.ViewModel
         private readonly ObservableAsPropertyHelper<HashSet<LogLevel>> _selectedLevels;
         private int _colorIndex;
         private bool _isSelected;
-        private readonly Subject<bool> _isSelectedSubject = new Subject<bool>();
 
         public SourceViewModel(bool IsSelected, string Name, int ColorIndex)
         {
@@ -50,11 +48,7 @@ namespace Scribe.Wpf.ViewModel
         public bool IsSelected
         {
             get => _isSelected;
-            set
-            {
-                this.RaiseAndSetIfChanged(ref _isSelected, value);
-                _isSelectedSubject.OnNext(value);
-            }
+            set => this.RaiseAndSetIfChanged(ref _isSelected, value);
         }
 
         public int ColorIndex
@@ -62,8 +56,6 @@ namespace Scribe.Wpf.ViewModel
             get => _colorIndex;
             set => this.RaiseAndSetIfChanged(ref _colorIndex, value);
         }
-
-        public IObservable<bool> IsSelectedObservable => _isSelectedSubject.StartWith(_isSelected);
     }
 
     public class LogLevelFilterViewModel : ReactiveObject
