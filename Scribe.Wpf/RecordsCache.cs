@@ -17,6 +17,7 @@ namespace Scribe.Wpf
         IObservableList<LogRecordViewModel>       VisibleRecords { get; }
         IObservableCache<SourceViewModel, string> Sources        { get; }
         void                                      PutRecords(IEnumerable<LogRecord> Records);
+        IObservable<Unit> OnResetObservable { get; }
 
         void Filter(Func<LogRecordViewModel, bool> Filter);
         void Clear();
@@ -35,6 +36,8 @@ namespace Scribe.Wpf
 
         private readonly SourceList<LogRecordViewModel> _visibleRecords;
         private Func<LogRecordViewModel, bool> _lastFilter = _ => true;
+        
+        private Subject<Unit> _resetSubject = new Subject<Unit>();
 
         public RecordsCache(SourceViewModelFactory SourceViewModelFactory)
         {
@@ -99,6 +102,8 @@ namespace Scribe.Wpf
             }
         }
 
+        public IObservable<Unit> OnResetObservable => _resetSubject;
+
         public IObservableList<LogRecordViewModel>       VisibleRecords { get; }
         public IObservableCache<SourceViewModel, string> Sources        { get; }
 
@@ -138,6 +143,7 @@ namespace Scribe.Wpf
                     items.Clear();
                     items.AddRange(NewItems);
                 });
+                _resetSubject.OnNext(Unit.Default);
             }
             catch (Exception e)
             {

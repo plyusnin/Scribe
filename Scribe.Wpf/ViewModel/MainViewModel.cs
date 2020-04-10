@@ -9,6 +9,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 using DynamicData;
 using DynamicData.Binding;
 using Microsoft.Win32;
@@ -70,6 +71,7 @@ namespace Scribe.Wpf.ViewModel
                                 v.IndexOf(qf, StringComparison.CurrentCultureIgnoreCase) >= 0)
                 .Subscribe(f => recordsCache.Filter(r => f(r.Message)));
 
+            RecordsOnReset = recordsCache.OnResetObservable.ObserveOnDispatcher(DispatcherPriority.DataBind);
 
             HighlightRecord = ReactiveCommand.Create<LogRecordViewModel>(rec => rec.IsHighlighted = !rec.IsHighlighted);
             recordsCache.VisibleRecords.Connect()
@@ -103,6 +105,8 @@ namespace Scribe.Wpf.ViewModel
                 .Select(x => x?.Exception != null)
                 .ToProperty(this, x => x.HasExceptionToShow, out _hasExceptionToShow);
         }
+
+        public IObservable<Unit> RecordsOnReset { get; }
 
         public ReactiveCommand<LogRecordViewModel, Unit>        HighlightRecord    { get; }
         public ReadOnlyObservableCollection<LogRecordViewModel> HighlightedRecords => _highlightedRecords;

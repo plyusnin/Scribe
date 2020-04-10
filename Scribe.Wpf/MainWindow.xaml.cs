@@ -27,19 +27,11 @@ namespace Scribe.Wpf
                 new SourceViewModelFactory(settings),
                 new ILogFileOpener[] {fileNLogSource});
             DataContext = _viewModel;
-            //_viewModel.Records.ShouldReset.Subscribe(OnLogReset);
+            _viewModel.RecordsOnReset.Subscribe(OnLogReset);
         }
 
         private void OnLogReset(Unit Unit)
         {
-            //var item = LogBox.Items
-            //                 .OfType<LogRecordViewModel>()
-            //                 .FirstOrDefault(l => l.Record == _lastSelection)
-            //           ?? LogBox.Items
-            //                    .OfType<LogRecordViewModel>()
-            //                    .FirstOrDefault(l => l.TimeStamp >= _lastSelection.TimeStamp)
-            //           ?? (LogBox.Items.Count > 0 ? LogBox.Items[LogBox.Items.Count - 1] : null);
-
             var item = LogBox.Items
                              .OfType<LogRecordViewModel>()
                              .FirstOrDefault(l => l.Time >= _lastSelection)
