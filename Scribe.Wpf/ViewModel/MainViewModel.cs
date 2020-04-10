@@ -11,6 +11,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 using DynamicData;
 using DynamicData.Binding;
 using Microsoft.Win32;
@@ -53,12 +54,14 @@ namespace Scribe.Wpf.ViewModel
                          .ObserveOn(TaskPoolScheduler.Default)
                          .Subscribe(_recordsCache.PutRecords);
 
+            // Binding Sources
             _recordsCache.Sources.Connect()
                          .Sort(SortExpressionComparer<SourceViewModel>.Ascending(s => s.Name))
                          .ObserveOnDispatcher()
                          .Bind(out _sourcesObservableCollection)
                          .Subscribe();
 
+            // Binding Records
             _recordsCache.VisibleRecords.Connect()
                          .ObserveOnDispatcher()
                          .Bind(out _recordsObservableCollection)
@@ -71,7 +74,7 @@ namespace Scribe.Wpf.ViewModel
 
 
             this.WhenAnyValue(x => x.QuickFilter)
-                .Throttle(TimeSpan.FromMilliseconds(200))
+                .Throttle(TimeSpan.FromMilliseconds(100))
                 .Select<string, Func<string, bool>>(
                      qf => v => string.IsNullOrWhiteSpace(qf) ||
                                 v.IndexOf(qf, StringComparison.CurrentCultureIgnoreCase) >= 0)
@@ -79,19 +82,19 @@ namespace Scribe.Wpf.ViewModel
 
 
             HighlightRecord = ReactiveCommand.Create<LogRecordViewModel>(rec => rec.IsHighlighted = !rec.IsHighlighted);
-            // records.Connect()
-            //        .AutoRefresh(x => x.IsHighlighted)
-            //        .Filter(x => x.IsHighlighted)
-            //        .Sort(SortExpressionComparer<LogRecordViewModel>.Ascending(x => x.Time))
-            //        .ObserveOnDispatcher()
-            //        .Bind(out _highlightedRecords)
-            //        .Subscribe();
+            _recordsCache.VisibleRecords.Connect()
+                         .AutoRefresh(x => x.IsHighlighted)
+                         .Filter(x => x.IsHighlighted)
+                         .Sort(SortExpressionComparer<LogRecordViewModel>.Ascending(x => x.Time))
+                         .ObserveOnDispatcher()
+                         .Bind(out _highlightedRecords)
+                         .Subscribe();
 
             SelectedRecords = new ObservableCollection<LogRecordViewModel>();
 
-            // Clear = ReactiveCommand.Create(() => allRecords.Clear(),
-            //                                allRecords.Connect().IsEmpty().Select(e => !e),
-            //                                DispatcherScheduler.Current);
+            Clear = ReactiveCommand.Create(() => _recordsCache.Clear(),
+                                           _recordsCache.VisibleRecords.Connect().IsEmpty().Select(e => !e).ObserveOnDispatcher(),
+                                           DispatcherScheduler.Current);
 
             SelectedRecords.ObserveCollectionChanges()
                            .Select(_ => SelectedRecords)

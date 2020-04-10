@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using ReactiveUI;
 using Scribe.EventsLayer;
 using Scribe.EventsLayer.NLog;
 using Scribe.RecordsLayer;
@@ -68,9 +69,17 @@ namespace Scribe.Wpf
 
         private void OnRecordItemDoubleClick(object Sender, MouseButtonEventArgs E)
         {
-            var item = (ListViewItem)Sender;
-            var record = (LogRecordViewModel)item.DataContext;
-            _viewModel.HighlightRecord.Execute(record).GetAwaiter().GetResult();
+            try
+            {
+                var item    = (ListViewItem)Sender;
+                var record  = (LogRecordViewModel)item.DataContext;
+                
+                _viewModel.HighlightRecord.Execute(record).Subscribe();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
 
         private void CommandBinding_OnExecuted(object Sender, ExecutedRoutedEventArgs E)

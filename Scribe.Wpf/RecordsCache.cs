@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
+using System.Threading.Tasks;
 using DynamicData;
 using DynamicData.Binding;
 using DynamicData.PLinq;
@@ -22,6 +24,7 @@ namespace Scribe.Wpf
         IObservableCache<SourceViewModel, string> Sources        { get; }
 
         void Filter(Func<LogRecordViewModel, bool> Filter);
+        void Clear();
     }
 
     public class RecordsCache : IRecordsCache
@@ -50,14 +53,6 @@ namespace Scribe.Wpf
             VisibleRecords = _visibleRecords.Connect()
                                             .AsObservableList();
 
-
-            _sourcesCache.Connect()
-                         .AutoRefresh(s => s.IsSelected)
-                         .AutoRefresh(s => s.SelectedLevels)
-                         .ToCollection()
-                         .Subscribe(x => { });
-            
-
             new[]
                 {
                     _sourcesCache.Connect()
@@ -70,43 +65,44 @@ namespace Scribe.Wpf
                 }
                .Merge()
                .Throttle(TimeSpan.FromMilliseconds(50))
-               .ObserveOn(TaskPoolScheduler.Default)
-               .Synchronize(_insertionLocker)
-               .Subscribe(_ => Refresh());
+               .SelectMany((_, c) => GetFilteredList(c))
+               .Subscribe(Refresh);
         }
 
         private long _lastAssignedItemId = 0;
 
         public void PutRecords(IEnumerable<LogRecord> Records)
         {
+            _recordsLocker.Wait();
             try
             {
                 var newItems = new List<LogRecordViewModel>();
-                lock (_insertionLocker)
+                foreach (var record in Records)
                 {
-                    foreach (var record in Records)
+                    if (!_sources.TryGetValue(record.Source, out var source))
                     {
-                        if (!_sources.TryGetValue(record.Source, out var source))
-                        {
-                            source = _sourceViewModelFactory.CreateInstance(record.Source);
-                            _sources.Add(source.Name, source);
-                            _sourcesCache.AddOrUpdate(source);
-                        }
-
-                        var recordViewModel = new LogRecordViewModel(Interlocked.Increment(ref _lastAssignedItemId),
-                                                                     record.Time, source, record.Message, record.Level,
-                                                                     record.Exception);
-
-                        newItems.Add(recordViewModel);
+                        source = _sourceViewModelFactory.CreateInstance(record.Source);
+                        _sources.Add(source.Name, source);
+                        _sourcesCache.AddOrUpdate(source);
                     }
 
-                    _records.AddRange(newItems);
-                    _visibleRecords.AddRange(newItems.Where(_lastFilter));
+                    var recordViewModel = new LogRecordViewModel(Interlocked.Increment(ref _lastAssignedItemId),
+                                                                 record.Time, source, record.Message, record.Level,
+                                                                 record.Exception);
+
+                    newItems.Add(recordViewModel);
                 }
+
+                _records.AddRange(newItems);
+                _visibleRecords.AddRange(newItems.Where(_lastFilter));
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
+            }
+            finally
+            {
+                _recordsLocker.Release();
             }
         }
 
@@ -119,6 +115,20 @@ namespace Scribe.Wpf
             _filterSubject.OnNext(Unit.Default);
         }
 
+        public void Clear()
+        {
+            _recordsLocker.Wait();
+            try
+            {
+                _records.Clear();
+                _visibleRecords.Clear();
+            }
+            finally
+            {
+                _recordsLocker.Release();
+            }
+        }
+
         private readonly SourceList<LogRecordViewModel> _visibleRecords;
         private Func<LogRecordViewModel, bool> _lastFilter = _ => true;
 
@@ -129,23 +139,44 @@ namespace Scribe.Wpf
             return _lastFilter(Record);
         }
 
-        private void Refresh()
+        private void Refresh(IList<LogRecordViewModel> NewItems)
         {
             try
             {
-                var newItems = _records.AsParallel()
-                                       .Where(Filter)
-                                       .ToList();
-
                 _visibleRecords.Edit(items =>
                 {
                     items.Clear();
-                    items.AddRange(newItems);
+                    items.AddRange(NewItems);
                 });
+                Console.WriteLine($"Refreshed ({NewItems.Count} items)");
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
+            }
+        }
+
+        private readonly SemaphoreSlim _recordsLocker = new SemaphoreSlim(1);
+
+        private async Task<List<LogRecordViewModel>> GetFilteredList(CancellationToken Cancellation)
+        {
+            await _recordsLocker.WaitAsync(Cancellation);
+            try
+            {
+                Cancellation.ThrowIfCancellationRequested();
+                var sw = Stopwatch.StartNew();
+                var newItems = _records.AsParallel()
+                                       .Where(Filter)
+                                       .TakeWhile(_ => !Cancellation.IsCancellationRequested)
+                                       .ToList();
+                Console.WriteLine(
+                    $"{newItems.Count} items waf filtered in {sw.Elapsed.TotalSeconds:F3} sec, ThreadID: {Thread.CurrentThread.ManagedThreadId}");
+                Cancellation.ThrowIfCancellationRequested();
+                return newItems;
+            }
+            finally
+            {
+                _recordsLocker.Release();
             }
         }
     }
