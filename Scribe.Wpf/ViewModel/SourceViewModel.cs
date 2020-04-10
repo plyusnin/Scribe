@@ -6,6 +6,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Binding;
+using DynamicData.PLinq;
 using ReactiveUI;
 using Scribe.EventsLayer;
 
@@ -17,31 +18,37 @@ namespace Scribe.Wpf.ViewModel
         private int _colorIndex;
         private bool _isSelected;
 
+        private readonly ReadOnlyObservableCollection<LogLevelFilterViewModel> _displayLogLevels;
+
         public SourceViewModel(bool IsSelected, string Name, int ColorIndex)
         {
             _isSelected = IsSelected;
             _colorIndex = ColorIndex;
             this.Name   = Name;
 
-            DisplayLogLevels =
-                new ObservableCollection<LogLevelFilterViewModel>(
-                    Enum.GetValues(typeof(LogLevel))
-                        .OfType<LogLevel>()
-                        .Select(level => new LogLevelFilterViewModel(level)));
+            var displayLogLevelsSource = new SourceCache<LogLevelFilterViewModel, LogLevel>(x => x.Value);
 
-            DisplayLogLevels.ToObservableChangeSet()
-                            .WhenPropertyChanged(x => x.IsSelected)
-                            .Select(_ => Unit.Default)
-                            .StartWith(Unit.Default)
-                            .Select(_ => new HashSet<LogLevel>(
-                                        DisplayLogLevels.Where(l => l.IsSelected).Select(l => l.Value)))
-                            .ObserveOn(RxApp.MainThreadScheduler)
-                            .ToProperty(this, x => x.SelectedLevels, out _selectedLevels);
+            displayLogLevelsSource.AddOrUpdate(
+                Enum.GetValues(typeof(LogLevel))
+                    .OfType<LogLevel>()
+                    .Select(level => new LogLevelFilterViewModel(level)));
+
+            displayLogLevelsSource.Connect()
+                                  .ObserveOn(RxApp.MainThreadScheduler)
+                                  .Bind(out _displayLogLevels)
+                                  .Subscribe();
+
+            displayLogLevelsSource.Connect()
+                                  .AutoRefresh(x => x.IsSelected)
+                                  .Filter(x => x.IsSelected)
+                                  .ToCollection()
+                                  .Select(ll => new HashSet<LogLevel>(ll.Select(l => l.Value)))
+                                  .ToProperty(this, x => x.SelectedLevels, out _selectedLevels);
         }
 
         public HashSet<LogLevel> SelectedLevels => _selectedLevels.Value;
 
-        public ObservableCollection<LogLevelFilterViewModel> DisplayLogLevels { get; }
+        public ReadOnlyObservableCollection<LogLevelFilterViewModel> DisplayLogLevels => _displayLogLevels;
 
         public string Name { get; }
 

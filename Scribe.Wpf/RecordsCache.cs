@@ -66,10 +66,10 @@ namespace Scribe.Wpf
                                  .ToCollection()
                                  .Select(_ => Unit.Default),
 
-
                     _filterSubject
                 }
                .Merge()
+               .Throttle(TimeSpan.FromMilliseconds(50))
                .ObserveOn(TaskPoolScheduler.Default)
                .Synchronize(_insertionLocker)
                .Subscribe(_ => Refresh());
@@ -131,15 +131,22 @@ namespace Scribe.Wpf
 
         private void Refresh()
         {
-            var newItems = _records.AsParallel()
-                                   .Where(Filter)
-                                   .ToList();
-
-            _visibleRecords.Edit(items =>
+            try
             {
-                items.Clear();
-                items.AddRange(newItems);
-            });
+                var newItems = _records.AsParallel()
+                                       .Where(Filter)
+                                       .ToList();
+
+                _visibleRecords.Edit(items =>
+                {
+                    items.Clear();
+                    items.AddRange(newItems);
+                });
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
     }
 }
