@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
-using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-using ReactiveUI;
 using Scribe.EventsLayer;
 using Scribe.EventsLayer.NLog;
 using Scribe.RecordsLayer;
@@ -18,17 +14,18 @@ namespace Scribe.Wpf
     /// <summary>Логика взаимодействия для MainWindow.xaml</summary>
     public partial class MainWindow : Window
     {
+        private readonly MainViewModel _viewModel;
         private DateTime _lastSelection = DateTime.Now;
-        private MainViewModel _viewModel;
 
         public MainWindow()
         {
             InitializeComponent();
-            var settings = Settings.Load();
+            var settings       = Settings.Load();
             var fileNLogSource = new FileNLogSource();
-            _viewModel = new MainViewModel(new NLogRecordsSource(new CompositeLogSource<NLogEvent>(new UdpNLogSource(), fileNLogSource)),
-                                           new SourceViewModelFactory(settings),
-                                           new ILogFileOpener[] { fileNLogSource });
+            _viewModel = new MainViewModel(
+                new NLogRecordsSource(new CompositeLogSource<NLogEvent>(new UdpNLogSource(), fileNLogSource)),
+                new SourceViewModelFactory(settings),
+                new ILogFileOpener[] {fileNLogSource});
             DataContext = _viewModel;
             //_viewModel.Records.ShouldReset.Subscribe(OnLogReset);
         }
@@ -46,7 +43,7 @@ namespace Scribe.Wpf
             var item = LogBox.Items
                              .OfType<LogRecordViewModel>()
                              .FirstOrDefault(l => l.Time >= _lastSelection)
-                       ?? (LogBox.Items.Count > 0 ? LogBox.Items[LogBox.Items.Count - 1] : null);
+                       ?? (LogBox.Items.Count > 0 ? LogBox.Items[^1] : null);
 
             if (item != null)
             {
@@ -71,9 +68,9 @@ namespace Scribe.Wpf
         {
             try
             {
-                var item    = (ListViewItem)Sender;
-                var record  = (LogRecordViewModel)item.DataContext;
-                
+                var item   = (ListViewItem) Sender;
+                var record = (LogRecordViewModel) item.DataContext;
+
                 _viewModel.HighlightRecord.Execute(record).Subscribe();
             }
             catch (Exception e)
@@ -90,18 +87,8 @@ namespace Scribe.Wpf
                 LogBox.SelectedItem = item;
                 LogBox.ScrollIntoView(item);
             }
+
             BookmarksButton.IsChecked = false;
-        }
-
-        private void BookmarksButton_OnClick(object Sender, RoutedEventArgs E)
-        {
-            //((Button)Sender).ContextMenu.IsOpen = true;
-        }
-
-        private void ScrollBar_OnScroll(object Sender, ScrollEventArgs E)
-        {
-            
-            
         }
     }
 }

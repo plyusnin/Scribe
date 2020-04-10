@@ -164,8 +164,7 @@
                         Content="" FontFamily="/Fonts/#Font Awesome 5 Free Regular" />
                 <Rectangle Width="18" />
                 <ToggleButton Foreground="#59BB0E" Content="" FontFamily="/Fonts/#Font Awesome 5 Free Solid"
-                              Name="BookmarksButton"
-                              Click="BookmarksButton_OnClick" ToolTip="Список закладок" />
+                              Name="BookmarksButton" ToolTip="Список закладок" />
                 <Popup IsOpen="{Binding ElementName=BookmarksButton, Path=IsChecked}"
                        PlacementTarget="{Binding ElementName=BookmarksButton}"
                        Placement="Bottom" StaysOpen="False" PopupAnimation="Fade" AllowsTransparency="True"

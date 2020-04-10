@@ -1,17 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
-using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using DynamicData;
-using DynamicData.Binding;
-using DynamicData.PLinq;
 using Scribe.RecordsLayer;
 using Scribe.Wpf.ViewModel;
 
@@ -19,9 +14,9 @@ namespace Scribe.Wpf
 {
     public interface IRecordsCache
     {
-        void                                      PutRecords(IEnumerable<LogRecord> Records);
         IObservableList<LogRecordViewModel>       VisibleRecords { get; }
         IObservableCache<SourceViewModel, string> Sources        { get; }
+        void                                      PutRecords(IEnumerable<LogRecord> Records);
 
         void Filter(Func<LogRecordViewModel, bool> Filter);
         void Clear();
@@ -30,15 +25,16 @@ namespace Scribe.Wpf
     public class RecordsCache : IRecordsCache
     {
         private readonly Subject<Unit> _filterSubject = new Subject<Unit>();
+        private readonly List<LogRecordViewModel> _records = new List<LogRecordViewModel>();
+
+        private readonly SemaphoreSlim _recordsLocker = new SemaphoreSlim(1);
 
         private readonly Dictionary<string, SourceViewModel> _sources;
-
         private readonly SourceCache<SourceViewModel, string> _sourcesCache;
-
-        private readonly object _insertionLocker = new object();
         private readonly SourceViewModelFactory _sourceViewModelFactory;
 
-        private readonly List<LogRecordViewModel> _records = new List<LogRecordViewModel>();
+        private readonly SourceList<LogRecordViewModel> _visibleRecords;
+        private Func<LogRecordViewModel, bool> _lastFilter = _ => true;
 
         public RecordsCache(SourceViewModelFactory SourceViewModelFactory)
         {
@@ -69,8 +65,6 @@ namespace Scribe.Wpf
                .Subscribe(Refresh);
         }
 
-        private long _lastAssignedItemId = 0;
-
         public void PutRecords(IEnumerable<LogRecord> Records)
         {
             _recordsLocker.Wait();
@@ -86,8 +80,7 @@ namespace Scribe.Wpf
                         _sourcesCache.AddOrUpdate(source);
                     }
 
-                    var recordViewModel = new LogRecordViewModel(Interlocked.Increment(ref _lastAssignedItemId),
-                                                                 record.Time, source, record.Message, record.Level,
+                    var recordViewModel = new LogRecordViewModel(record.Time, source, record.Message, record.Level,
                                                                  record.Exception);
 
                     newItems.Add(recordViewModel);
@@ -129,9 +122,6 @@ namespace Scribe.Wpf
             }
         }
 
-        private readonly SourceList<LogRecordViewModel> _visibleRecords;
-        private Func<LogRecordViewModel, bool> _lastFilter = _ => true;
-
         private bool Filter(LogRecordViewModel Record)
         {
             if (!Record.Source.IsSelected) return false;
@@ -148,7 +138,6 @@ namespace Scribe.Wpf
                     items.Clear();
                     items.AddRange(NewItems);
                 });
-                Console.WriteLine($"Refreshed ({NewItems.Count} items)");
             }
             catch (Exception e)
             {
@@ -156,21 +145,16 @@ namespace Scribe.Wpf
             }
         }
 
-        private readonly SemaphoreSlim _recordsLocker = new SemaphoreSlim(1);
-
         private async Task<List<LogRecordViewModel>> GetFilteredList(CancellationToken Cancellation)
         {
             await _recordsLocker.WaitAsync(Cancellation);
             try
             {
                 Cancellation.ThrowIfCancellationRequested();
-                var sw = Stopwatch.StartNew();
                 var newItems = _records.AsParallel()
                                        .Where(Filter)
                                        .TakeWhile(_ => !Cancellation.IsCancellationRequested)
                                        .ToList();
-                Console.WriteLine(
-                    $"{newItems.Count} items waf filtered in {sw.Elapsed.TotalSeconds:F3} sec, ThreadID: {Thread.CurrentThread.ManagedThreadId}");
                 Cancellation.ThrowIfCancellationRequested();
                 return newItems;
             }

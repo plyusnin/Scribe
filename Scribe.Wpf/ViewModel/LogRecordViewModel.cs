@@ -8,10 +8,9 @@ namespace Scribe.Wpf.ViewModel
     {
         private bool _isHighlighted;
 
-        public LogRecordViewModel(long Id, DateTime Time, SourceViewModel Source, string Message, LogLevel Level,
+        public LogRecordViewModel(DateTime Time, SourceViewModel Source, string Message, LogLevel Level,
                                   string Exception)
         {
-            this.Id        = Id;
             this.Time      = Time;
             this.Source    = Source;
             this.Message   = Message;
@@ -19,7 +18,6 @@ namespace Scribe.Wpf.ViewModel
             this.Exception = Exception;
         }
 
-        public long            Id        { get; }
         public DateTime        Time      { get; }
         public SourceViewModel Source    { get; }
         public string          Message   { get; }
