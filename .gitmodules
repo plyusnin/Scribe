@@ -1,0 +1,3 @@
+[submodule "LogListBox"]
+	path = LogListBox
+	url = https://github.com/plyusnin/LogListBox.git
