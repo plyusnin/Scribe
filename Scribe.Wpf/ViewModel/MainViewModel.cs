@@ -12,6 +12,7 @@ using System.Windows;
 using System.Windows.Threading;
 using DynamicData;
 using DynamicData.Binding;
+using LogList.Control;
 using Microsoft.Win32;
 using ReactiveUI;
 using Scribe.EventsLayer;
@@ -26,7 +27,7 @@ namespace Scribe.Wpf.ViewModel
         private readonly ReadOnlyObservableCollection<LogRecordViewModel> _highlightedRecords;
         private readonly ICollection<ILogFileOpener> _logFileOpeners;
 
-        private readonly ReadOnlyObservableCollection<LogRecordViewModel> _recordsObservableCollection;
+        private readonly ReadOnlyObservableCollection<ILogItem> _recordsObservableCollection;
         private readonly ObservableAsPropertyHelper<TimeSpan> _selectedInterval;
         private readonly ObservableAsPropertyHelper<LogRecordViewModel> _selectedRecord;
         private readonly ReadOnlyObservableCollection<SourceViewModel> _sourcesObservableCollection;
@@ -55,6 +56,7 @@ namespace Scribe.Wpf.ViewModel
             // Binding Records
             recordsCache.VisibleRecords.Connect()
                         .ObserveOnDispatcher()
+                        .Transform(i => (ILogItem)i)
                         .Bind(out _recordsObservableCollection)
                         .Subscribe();
 
@@ -125,7 +127,7 @@ namespace Scribe.Wpf.ViewModel
             set => this.RaiseAndSetIfChanged(ref _quickFilter, value);
         }
 
-        public ReadOnlyObservableCollection<LogRecordViewModel> Records => _recordsObservableCollection;
+        public ReadOnlyObservableCollection<ILogItem> Records => _recordsObservableCollection;
         public ReadOnlyObservableCollection<SourceViewModel>    Sources => _sourcesObservableCollection;
 
         public ObservableCollection<LogRecordViewModel> SelectedRecords { get; }

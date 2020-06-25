@@ -1,10 +1,11 @@
 ﻿using System;
+using LogList.Control;
 using ReactiveUI;
 using Scribe.EventsLayer;
 
 namespace Scribe.Wpf.ViewModel
 {
-    public class LogRecordViewModel : ReactiveObject
+    public class LogRecordViewModel : ReactiveObject, ILogItem
     {
         private bool _isHighlighted;
 

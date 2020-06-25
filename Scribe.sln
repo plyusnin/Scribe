@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scribe.Common", "Scribe.Com
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scribe.Wpf", "Scribe.Wpf\Scribe.Wpf.csproj", "{CC64E60A-29F4-4DE3-8AB9-7C03B636BB28}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogList.Control", "LogListBox\LogList.Control\LogList.Control.csproj", "{F924CA33-02BB-4491-8C68-837BE6BF238A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{CC64E60A-29F4-4DE3-8AB9-7C03B636BB28}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CC64E60A-29F4-4DE3-8AB9-7C03B636BB28}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CC64E60A-29F4-4DE3-8AB9-7C03B636BB28}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F924CA33-02BB-4491-8C68-837BE6BF238A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F924CA33-02BB-4491-8C68-837BE6BF238A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F924CA33-02BB-4491-8C68-837BE6BF238A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F924CA33-02BB-4491-8C68-837BE6BF238A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

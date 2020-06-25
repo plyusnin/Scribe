@@ -29,60 +29,48 @@ namespace Scribe.Wpf
                 new SourceViewModelFactory(settings),
                 new ILogFileOpener[] { fileNLogSource });
             DataContext = _viewModel;
-            _viewModel.RecordsOnReset.Subscribe(OnLogReset);
         }
 
-        private void OnLogReset(Unit Unit)
-        {
-            var item = LogBox.Items
-                             .OfType<LogRecordViewModel>()
-                             .FirstOrDefault(l => l.Time >= _lastSelection)
-                       ?? (LogBox.Items.Count > 0 ? LogBox.Items[^1] : null);
-
-            if (item != null)
-            {
-                LogBox.SelectedItem = item;
-                LogBox.ScrollIntoView(item);
-            }
-        }
-
-        private void LogBox_OnSelectionChanged(object Sender, SelectionChangedEventArgs E)
-        {
-            if (LogBox.SelectedItems.Count > 0)
-            {
-                var sel = LogBox.SelectedItems
-                                .OfType<LogRecordViewModel>()
-                                .First();
-
-                _lastSelection = sel.Time;
-            }
-        }
-
-        private void OnRecordItemDoubleClick(object Sender, MouseButtonEventArgs E)
-        {
-            try
-            {
-                var item   = (ListViewItem) Sender;
-                var record = (LogRecordViewModel) item.DataContext;
-
-                _viewModel.HighlightRecord.Execute(record).Subscribe();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
-        }
+        // private void LogBox_OnSelectionChanged(object Sender, SelectionChangedEventArgs E)
+        // {
+        //     if (LogBox.SelectedItems.Count > 0)
+        //     {
+        //         var sel = LogBox.SelectedItems
+        //                         .OfType<LogRecordViewModel>()
+        //                         .First();
+        //
+        //         _lastSelection = sel.Time;
+        //     }
+        // }
 
         private void CommandBinding_OnExecuted(object Sender, ExecutedRoutedEventArgs E)
         {
-            var item = E.Parameter;
+            var item = E.Parameter as LogRecordViewModel;
             if (item != null)
             {
-                LogBox.SelectedItem = item;
+                //LogBox.SelectedItem = item;
                 LogBox.ScrollIntoView(item);
             }
 
             BookmarksButton.IsChecked = false;
+        }
+
+        private void ListItem_OnMouseLeftButtonUp(object Sender, MouseButtonEventArgs E)
+        {
+            if (E.ClickCount == 2)
+            {
+                try
+                {
+                    var item   = (ListViewItem) Sender;
+                    var record = (LogRecordViewModel) item.DataContext;
+
+                    _viewModel.HighlightRecord.Execute(record).Subscribe();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+            }
         }
     }
 }
