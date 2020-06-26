@@ -17,6 +17,7 @@
         <ResourceDictionary>
             <converters:ColorIndexToBrushConverter x:Key="ColorConverter">
                 <converters:ColorIndexToBrushConverter.Brushes>
+                    <SolidColorBrush Color="Black" />
                     <SolidColorBrush Color="RoyalBlue" />
                     <SolidColorBrush Color="OrangeRed" />
                     <SolidColorBrush Color="ForestGreen" />
@@ -35,16 +36,17 @@
             
             <DataTemplate x:Key="LogItemTemplate" DataType="viewModel:LogRecordViewModel">
                 <Grid x:Name="ItemRoot" MouseLeftButtonUp="ListItem_OnMouseLeftButtonUp"
-                      TextBlock.Foreground="{Binding Path=Source.ColorIndex, Converter={StaticResource ColorConverter}}">
+                      TextBlock.Foreground="{Binding Path=Source.ColorIndex, Converter={StaticResource ColorConverter}}"
+                      VerticalAlignment="Center">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="100" />
                         <ColumnDefinition Width="70" />
-                        <ColumnDefinition Width="220" />
+                        <ColumnDefinition Width="320" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" ToolTip="Время" Text="{Binding Time, StringFormat='HH:mm:ss.fff', Mode=OneTime}" />
-                    <TextBlock Grid.Column="1" ToolTip="Уровень" Text="{Binding Path=Level, Mode=OneTime}" />
-                    <TextBlock Grid.Column="2" ToolTip="Источник" Text="{Binding Path=Source.Name, Mode=OneTime}" />
+                    <TextBlock Grid.Column="0" Text="{Binding Time, StringFormat='HH:mm:ss.fff', Mode=OneTime}" />
+                    <TextBlock Grid.Column="1" Text="{Binding Path=Level, Mode=OneTime}" />
+                    <TextBlock Grid.Column="2" ToolTip="{Binding Path=Source.Name, Mode=OneTime}" Text="{Binding Path=Source.Name, Mode=OneTime}" />
                     <TextBlock Grid.Column="3" ToolTip="{Binding Message, Mode=OneTime}" Text="{Binding Message, Mode=OneTime}" />
                 </Grid>
                 <DataTemplate.Triggers>
@@ -252,9 +254,6 @@
                                     ItemsSource="{Binding Records}" FontFamily="Consolas"
                                     ItemTemplate="{StaticResource LogItemTemplate}">
                                     <!-- SelectionChanged="LogBox_OnSelectionChanged" -->
-                    <b:Interaction.Behaviors>
-                        <behaviors:AutoScrollBehavior IsActive="{Binding ElementName=AutoscrollSwitch, Path=IsChecked}" />
-                    </b:Interaction.Behaviors>
                 </control:LogListBox>
                 <TextBox Grid.Row="1" IsReadOnly="True" FontFamily="Consolas"
                          Padding="2,5,0,5" Margin="0,2,0,0" VerticalScrollBarVisibility="Visible"
@@ -344,6 +343,13 @@
                          FontWeight="SemiBold" />
                     <Run Text="сек." />
                 </TextBlock>
+            </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Right" VerticalContentAlignment="Stretch">
+                <StackPanel Orientation="Horizontal" Visibility="{Binding Path=Progress.IsActive, Mode=OneWay, Converter={StaticResource btv}}">
+                    <TextBlock VerticalAlignment="Center" Margin="2" Text="{Binding Path=Progress.Text}" />
+                    <ProgressBar Width="140" Minimum="0" Maximum="1" Value="{Binding Path=Progress.Value, Mode=OneWay}"
+                                 VerticalAlignment="Stretch" Margin="2" />                    
+                </StackPanel>
             </StatusBarItem>
         </StatusBar>
     </Grid>

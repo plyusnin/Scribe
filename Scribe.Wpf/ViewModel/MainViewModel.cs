@@ -12,7 +12,7 @@ using System.Windows;
 using System.Windows.Threading;
 using DynamicData;
 using DynamicData.Binding;
-using LogList.Control;
+using LogList.Control.Manipulation.Implementations;
 using Microsoft.Win32;
 using ReactiveUI;
 using Scribe.EventsLayer;
@@ -27,23 +27,27 @@ namespace Scribe.Wpf.ViewModel
         private readonly ReadOnlyObservableCollection<LogRecordViewModel> _highlightedRecords;
         private readonly ICollection<ILogFileOpener> _logFileOpeners;
 
-        private readonly ReadOnlyObservableCollection<ILogItem> _recordsObservableCollection;
         private readonly ObservableAsPropertyHelper<TimeSpan> _selectedInterval;
         private readonly ObservableAsPropertyHelper<LogRecordViewModel> _selectedRecord;
         private readonly ReadOnlyObservableCollection<SourceViewModel> _sourcesObservableCollection;
+
+        private bool _autoScroll;
         private string _quickFilter;
 
-        public MainViewModel(IRecordsSource RecordsSource, SourceViewModelFactory SourceViewModelFactory,
-                             ICollection<ILogFileOpener> LogFileOpeners)
+        public MainViewModel(
+            IRecordsSource RecordsSource, SourceViewModelFactory SourceViewModelFactory,
+            ICollection<ILogFileOpener> LogFileOpeners)
         {
             _logFileOpeners = LogFileOpeners;
 
-            IRecordsCache recordsCache = new RecordsCache(SourceViewModelFactory);
+            IRecordsCache recordsCache = new RecordsCache(SourceViewModelFactory, this.WhenAnyValue(x => x.QuickFilter));
+
+            this.WhenAnyValue(x => x.AutoScroll)
+                .Subscribe(v => recordsCache.AutoScroll = v);
 
             RecordsSource.Source
                          .Buffer(TimeSpan.FromMilliseconds(100))
                          .Where(list => list.Any())
-                         .ObserveOn(TaskPoolScheduler.Default)
                          .Subscribe(recordsCache.PutRecords);
 
             // Binding Sources
@@ -53,15 +57,11 @@ namespace Scribe.Wpf.ViewModel
                         .Bind(out _sourcesObservableCollection)
                         .Subscribe();
 
-            // Binding Records
-            recordsCache.VisibleRecords.Connect()
-                        .ObserveOnDispatcher()
-                        .Transform(i => (ILogItem)i)
-                        .Bind(out _recordsObservableCollection)
-                        .Subscribe();
+            Records = recordsCache.VisibleRecords;
 
             OpenLogFile = ReactiveCommand.CreateFromTask(OpenLogFileRoutine,
                                                          outputScheduler: DispatcherScheduler.Current);
+            
             OpenLogFile.ThrownExceptions
                        .Subscribe(e => MessageBox.Show(e.Message, "Ой!"));
 
@@ -73,22 +73,23 @@ namespace Scribe.Wpf.ViewModel
                                 v.IndexOf(qf, StringComparison.CurrentCultureIgnoreCase) >= 0)
                 .Subscribe(f => recordsCache.Filter(r => f(r.Message)));
 
-            RecordsOnReset = recordsCache.OnResetObservable.ObserveOnDispatcher(DispatcherPriority.DataBind);
 
             HighlightRecord = ReactiveCommand.Create<LogRecordViewModel>(rec => rec.IsHighlighted = !rec.IsHighlighted);
-            recordsCache.VisibleRecords.Connect()
-                        .AutoRefresh(x => x.IsHighlighted)
-                        .Filter(x => x.IsHighlighted)
-                        .Sort(SortExpressionComparer<LogRecordViewModel>.Ascending(x => x.Time))
-                        .ObserveOnDispatcher()
-                        .Bind(out _highlightedRecords)
-                        .Subscribe();
+            // recordsCache.VisibleRecords.Connect()
+            //             .AutoRefresh(x => x.IsHighlighted)
+            //             .Filter(x => x.IsHighlighted)
+            //             .Sort(SortExpressionComparer<LogRecordViewModel>.Ascending(x => x.Time))
+            //             .ObserveOnDispatcher()
+            //             .Bind(out _highlightedRecords)
+            //             .Subscribe();
+            _highlightedRecords = new ReadOnlyObservableCollection<LogRecordViewModel>(new ObservableCollection<LogRecordViewModel>());
 
             SelectedRecords = new ObservableCollection<LogRecordViewModel>();
 
             Clear = ReactiveCommand.Create(() => recordsCache.Clear(),
-                                           recordsCache
-                                              .VisibleRecords.Connect().IsEmpty().Select(e => !e).ObserveOnDispatcher(),
+                                           // recordsCache
+                                           //    .VisibleRecords.Connect().IsEmpty().Select(e => !e).ObserveOnDispatcher(),
+                                           Observable.Return(true),
                                            DispatcherScheduler.Current);
 
             SelectedRecords.ObserveCollectionChanges()
@@ -106,7 +107,11 @@ namespace Scribe.Wpf.ViewModel
             this.WhenAnyValue(x => x.SelectedRecord)
                 .Select(x => x?.Exception != null)
                 .ToProperty(this, x => x.HasExceptionToShow, out _hasExceptionToShow);
+            
+            this.Progress = new ProgressViewModel();
         }
+
+        public ProgressViewModel Progress { get; }
 
         public IObservable<Unit> RecordsOnReset { get; }
 
@@ -127,8 +132,14 @@ namespace Scribe.Wpf.ViewModel
             set => this.RaiseAndSetIfChanged(ref _quickFilter, value);
         }
 
-        public ReadOnlyObservableCollection<ILogItem> Records => _recordsObservableCollection;
-        public ReadOnlyObservableCollection<SourceViewModel>    Sources => _sourcesObservableCollection;
+        public bool AutoScroll
+        {
+            get => _autoScroll;
+            set => this.RaiseAndSetIfChanged(ref _autoScroll, value);
+        }
+
+        public ListViewModel<LogRecordViewModel>             Records { get; }
+        public ReadOnlyObservableCollection<SourceViewModel> Sources => _sourcesObservableCollection;
 
         public ObservableCollection<LogRecordViewModel> SelectedRecords { get; }
 
@@ -149,7 +160,10 @@ namespace Scribe.Wpf.ViewModel
                 var opener = _logFileOpeners.FirstOrDefault(o => "." + o.Extension.ToLower() == fileExt)
                              ?? throw new ApplicationException($"Файлы формата {fileExt} не поддерживаются");
 
-                await opener.OpenFileAsync(openDialog.FileName, Cancellation).ConfigureAwait(true);
+                Progress.IsActive = true;
+                Progress.Text = "Загрузка";
+                await opener.OpenFileAsync(openDialog.FileName, Cancellation, Progress).ConfigureAwait(true);
+                Progress.IsActive = false;
             }
         }
     }

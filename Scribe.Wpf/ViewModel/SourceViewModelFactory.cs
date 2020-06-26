@@ -17,17 +17,15 @@ namespace Scribe.Wpf.ViewModel
 
         public SourceViewModel CreateInstance(string SourceName)
         {
-            var options = _applicationSettings.SourcesOptions.FirstOrDefault(s => s.Name == SourceName);
+            var options = _applicationSettings.SourcesOptions?.FirstOrDefault(s => s.Name == SourceName);
             if (options == null)
             {
                 options = new SourceOptions(SourceName) { IsEnabled = true, ColorIndex = _random.Next(5) };
                 _applicationSettings.SourcesOptions.Add(options);
             }
 
-            var viewModel = new SourceViewModel(options.IsEnabled, SourceName, options.ColorIndex);
-            foreach (var hideLogLevel in options.HideLogLevels)
-                viewModel.DisplayLogLevels.Single(l => l.Value == hideLogLevel).IsSelected = false;
-
+            var viewModel = new SourceViewModel(options.IsEnabled, SourceName, options.ColorIndex, options.HideLogLevels);
+            
             viewModel.WhenAnyValue(x => x.ColorIndex).BindTo(options, o => o.ColorIndex);
             viewModel.WhenAnyValue(x => x.IsSelected).BindTo(options, o => o.IsEnabled);
             viewModel.WhenAnyValue(x => x.SelectedLevels)

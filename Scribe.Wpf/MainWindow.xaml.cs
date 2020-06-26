@@ -49,7 +49,7 @@ namespace Scribe.Wpf
             if (item != null)
             {
                 //LogBox.SelectedItem = item;
-                LogBox.ScrollIntoView(item);
+                //LogBox.ScrollIntoView(item);
             }
 
             BookmarksButton.IsChecked = false;

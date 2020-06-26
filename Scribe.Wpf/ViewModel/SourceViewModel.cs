@@ -20,7 +20,7 @@ namespace Scribe.Wpf.ViewModel
 
         private readonly ReadOnlyObservableCollection<LogLevelFilterViewModel> _displayLogLevels;
 
-        public SourceViewModel(bool IsSelected, string Name, int ColorIndex)
+        public SourceViewModel(bool IsSelected, string Name, int ColorIndex, IList<LogLevel> DisabledLogLevels)
         {
             _isSelected = IsSelected;
             _colorIndex = ColorIndex;
@@ -31,7 +31,7 @@ namespace Scribe.Wpf.ViewModel
             displayLogLevelsSource.AddOrUpdate(
                 Enum.GetValues(typeof(LogLevel))
                     .OfType<LogLevel>()
-                    .Select(level => new LogLevelFilterViewModel(level)));
+                    .Select(level => new LogLevelFilterViewModel(level) { IsSelected = !DisabledLogLevels.Contains(level)}));
 
             displayLogLevelsSource.Connect()
                                   .ObserveOn(RxApp.MainThreadScheduler)

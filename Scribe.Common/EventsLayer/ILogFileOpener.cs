@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Scribe.EventsLayer
@@ -7,6 +8,6 @@ namespace Scribe.EventsLayer
     {
         string Description { get; }
         string Extension { get; }
-        Task OpenFileAsync(string FileName, CancellationToken Cancellation);
+        Task OpenFileAsync(string FileName, CancellationToken Cancellation, IProgress<double> Progress);
     }
 }

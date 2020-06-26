@@ -27,12 +27,12 @@ namespace Scribe.Wpf.Behaviors
             base.OnAttached();
             Dispatcher.BeginInvoke(() =>
             {
-                _subscription = AssociatedObject.ItemsSource
-                                                .ToObservableChangeSet()
-                                                .ObserveOnDispatcher()
-                                                .Where(_ => IsActive)
-                                                .OnItemAdded(i => AssociatedObject.ScrollIntoView(i))
-                                                .Subscribe();
+                // _subscription = AssociatedObject.ItemsSource
+                //                                 .ToObservableChangeSet()
+                //                                 .ObserveOnDispatcher()
+                //                                 .Where(_ => IsActive)
+                //                                 .OnItemAdded(i => AssociatedObject.ScrollIntoView(i))
+                //                                 .Subscribe();
             }, DispatcherPriority.Loaded);
         }
 

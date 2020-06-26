@@ -4,13 +4,11 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Xml;
 using DynamicData;
 using DynamicData.Binding;
 using Newtonsoft.Json;
 using ReactiveUI;
 using Scribe.EventsLayer;
-using Formatting = Newtonsoft.Json.Formatting;
 
 namespace Scribe.Wpf
 {
@@ -21,7 +19,7 @@ namespace Scribe.Wpf
             "Saut", "The Scribe", "Settings.json");
 
         private readonly IDisposable _savingConnection;
-        private IObservable<IChangeSet<SourceOptions>> _sourcesCache;
+        private readonly IObservable<IChangeSet<SourceOptions>> _sourcesCache;
 
         [JsonConstructor]
         public Settings(IList<SourceOptions> Sources)
@@ -53,9 +51,7 @@ namespace Scribe.Wpf
                 Directory.CreateDirectory(Path.GetDirectoryName(_settingsPath));
                 File.WriteAllText(_settingsPath, json);
             }
-            catch (Exception)
-            {
-            }
+            catch (Exception) { }
         }
 
         public static Settings Load()
@@ -64,7 +60,8 @@ namespace Scribe.Wpf
             {
                 var json     = File.ReadAllText(_settingsPath);
                 var settings = JsonConvert.DeserializeObject<Settings>(json);
-                return settings;
+                
+                return settings ?? Default;
             }
             catch (Exception)
             {
