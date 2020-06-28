@@ -29,6 +29,10 @@
                     <SolidColorBrush Color="Fuchsia" />
                     <SolidColorBrush Color="SaddleBrown" />
                     <SolidColorBrush Color="LightSlateGray" />
+                    <SolidColorBrush Color="Salmon" />
+                    <SolidColorBrush Color="MidnightBlue" />
+                    <SolidColorBrush Color="Silver" />
+                    <SolidColorBrush Color="Yellow" />
                 </converters:ColorIndexToBrushConverter.Brushes>
             </converters:ColorIndexToBrushConverter>
             
@@ -36,18 +40,17 @@
             
             <DataTemplate x:Key="LogItemTemplate" DataType="viewModel:LogRecordViewModel">
                 <Grid x:Name="ItemRoot" MouseLeftButtonUp="ListItem_OnMouseLeftButtonUp"
-                      TextBlock.Foreground="{Binding Path=Source.ColorIndex, Converter={StaticResource ColorConverter}}"
-                      VerticalAlignment="Center">
+                      TextBlock.Foreground="{Binding Path=Source.ColorIndex, Converter={StaticResource ColorConverter}}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="100" />
                         <ColumnDefinition Width="70" />
                         <ColumnDefinition Width="320" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="{Binding Time, StringFormat='HH:mm:ss.fff', Mode=OneTime}" />
-                    <TextBlock Grid.Column="1" Text="{Binding Path=Level, Mode=OneTime}" />
-                    <TextBlock Grid.Column="2" ToolTip="{Binding Path=Source.Name, Mode=OneTime}" Text="{Binding Path=Source.Name, Mode=OneTime}" />
-                    <TextBlock Grid.Column="3" ToolTip="{Binding Message, Mode=OneTime}" Text="{Binding Message, Mode=OneTime}" />
+                    <TextBlock Grid.Column="0" Text="{Binding Time, StringFormat='HH:mm:ss.fff', Mode=OneTime}" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="{Binding Path=Level, Mode=OneTime}" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="2" ToolTip="{Binding Path=Source.Name, Mode=OneTime}" Text="{Binding Path=Source.Name, Mode=OneTime}" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="3" ToolTip="{Binding Message, Mode=OneTime}" Text="{Binding Message, Mode=OneTime}" VerticalAlignment="Center" />
                 </Grid>
                 <DataTemplate.Triggers>
                     <DataTrigger Binding="{Binding Level, Mode=OneTime}" Value="Trace">
@@ -273,7 +276,6 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <ListView Grid.Row="0" ItemsSource="{Binding Sources}" FontFamily="Consolas" Name="SourcesList">
                     <ListView.View>
