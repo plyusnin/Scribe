@@ -199,8 +199,7 @@
                         </Setter>
                     </Style>
                 </StackPanel.Resources>
-                <ToggleButton Name="AutoscrollSwitch" IsChecked="True" Foreground="#4F9E63"
-                              ToolTip="Автоскролл"
+                <ToggleButton IsChecked="{Binding AutoScroll}" Foreground="#4F9E63" ToolTip="Автоскролл"
                               Content="" FontFamily="/Fonts/#Font Awesome 5 Free Regular" />
                 <Rectangle Width="18" />
                 <Button Command="{Binding OpenLogFile}" Foreground="#BB820E" ToolTip="Загрузить лог из файла"

@@ -31,7 +31,7 @@ namespace Scribe.Wpf.ViewModel
         private readonly ObservableAsPropertyHelper<LogRecordViewModel> _selectedRecord;
         private readonly ReadOnlyObservableCollection<SourceViewModel> _sourcesObservableCollection;
 
-        private bool _autoScroll;
+        private bool _autoScroll = true;
         private string _quickFilter;
 
         public MainViewModel(
