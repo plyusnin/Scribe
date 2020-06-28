@@ -6,12 +6,10 @@
         <UseWPF>true</UseWPF>
         <LangVersion>default</LangVersion>
     </PropertyGroup>
-
-    <ItemGroup>
-      <Resource Include="..\!res\Icon\icon.ico">
-        <Link>icon.ico</Link>
-      </Resource>
-    </ItemGroup>
+    
+    <PropertyGroup>
+        <ApplicationIcon>icon.ico</ApplicationIcon>
+    </PropertyGroup>
 
     <ItemGroup>
       <SplashScreen Include="SplashScreen.jpg" />
@@ -35,6 +33,8 @@
       <Resource Include="Fonts\Font Awesome 5 Free-Regular-400.otf" />
       <None Remove="Fonts\Font Awesome 5 Free-Solid-900.otf" />
       <Resource Include="Fonts\Font Awesome 5 Free-Solid-900.otf" />
+      <None Remove="icon.ico" />
+      <Resource Include="icon.ico" />
     </ItemGroup>
 
 </Project>
