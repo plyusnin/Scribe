@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Linq;
-using System.Reactive;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -23,9 +21,13 @@ namespace Scribe.Wpf
             var settings       = Settings.Load();
             var fileNLogSource = new FileNLogSource();
             _viewModel = new MainViewModel(
-                new NLogRecordsSource(new CompositeLogSource<NLogEvent>(new UdpNLogSource(), fileNLogSource)),
+                new NLogRecordsSource(
+                    new CompositeLogSource<NLogEvent>(
+                        new UdpNLogSource(),
+                        new MulticastUdpNLogSource(),
+                        fileNLogSource)),
                 new SourceViewModelFactory(settings),
-                new ILogFileOpener[] {fileNLogSource});
+                new ILogFileOpener[] { fileNLogSource });
             DataContext = _viewModel;
             _viewModel.RecordsOnReset.Subscribe(OnLogReset);
         }
