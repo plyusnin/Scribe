@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using DynamicData;
-using DynamicData.Alias;
 using DynamicData.Binding;
 using LogList.Control.Manipulation.Implementations;
 using Microsoft.Win32;
@@ -32,6 +31,8 @@ namespace Scribe.Wpf.ViewModel
 
         private bool _autoScroll = true;
         private string _quickFilter;
+
+        private SourceNodeViewModel _selectedSourceNode;
 
         public MainViewModel(
             IRecordsSource RecordsSource, SourceViewModelFactory SourceViewModelFactory,
@@ -145,7 +146,7 @@ namespace Scribe.Wpf.ViewModel
             set => this.RaiseAndSetIfChanged(ref _autoScroll, value);
         }
 
-        public ListViewModel<LogRecordViewModel>             Records { get; }
+        public ListViewModel<LogRecordViewModel>                 Records { get; }
         public ReadOnlyObservableCollection<SourceNodeViewModel> Sources => _sourcesObservableCollection;
 
         public ObservableCollection<LogRecordViewModel> SelectedRecords { get; }
