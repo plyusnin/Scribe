@@ -292,9 +292,12 @@
                             </DockPanel>
                         </HierarchicalDataTemplate>
                     </TreeView.ItemTemplate>
+                    <b:Interaction.Behaviors>
+                        <behaviors:TreeViewSelectionBehavior SelectedItem="{Binding SelectedSourceNode}" ExpandSelected="False" />
+                    </b:Interaction.Behaviors>
                 </TreeView>
                 <GridSplitter Grid.Row="1" ResizeDirection="Columns" Height="2" ResizeBehavior="PreviousAndNext" />
-                <Border Grid.Row="2" DataContext="{Binding ElementName=SourcesList, Path=SelectedItem}">
+                <Border Grid.Row="2" DataContext="{Binding Path=SelectedSourceNode.Source}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />

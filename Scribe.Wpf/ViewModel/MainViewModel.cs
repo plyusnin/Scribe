@@ -110,8 +110,14 @@ namespace Scribe.Wpf.ViewModel
             this.WhenAnyValue(x => x.SelectedRecord)
                 .Select(x => x?.Exception != null)
                 .ToProperty(this, x => x.HasExceptionToShow, out _hasExceptionToShow);
-            
-            this.Progress = new ProgressViewModel();
+
+            Progress = new ProgressViewModel();
+        }
+
+        public SourceNodeViewModel SelectedSourceNode
+        {
+            get => _selectedSourceNode;
+            set => this.RaiseAndSetIfChanged(ref _selectedSourceNode, value);
         }
 
         public ProgressViewModel Progress { get; }
