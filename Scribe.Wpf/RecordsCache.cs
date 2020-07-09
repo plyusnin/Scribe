@@ -15,10 +15,10 @@ namespace Scribe.Wpf
 {
     public interface IRecordsCache
     {
-        ListViewModel<LogRecordViewModel>         VisibleRecords { get; }
-        IObservableCache<SourceViewModel, string> Sources        { get; }
-        bool                                      AutoScroll     { get; set; }
-        void                                      PutRecords(IEnumerable<LogRecord> Records);
+        ListViewModel<LogRecordViewModel>      VisibleRecords { get; }
+        IObservableCache<SourceViewModel, int> Sources        { get; }
+        bool                                   AutoScroll     { get; set; }
+        void                                   PutRecords(IEnumerable<LogRecord> Records);
 
         void Filter(Func<LogRecordViewModel, bool> Filter);
         void Clear();
@@ -31,7 +31,7 @@ namespace Scribe.Wpf
         private readonly SemaphoreSlim _recordsLocker = new SemaphoreSlim(1);
 
         private readonly Dictionary<string, SourceViewModel> _sources;
-        private readonly SourceCache<SourceViewModel, string> _sourcesCache;
+        private readonly SourceCache<SourceViewModel, int> _sourcesCache;
         private readonly SourceViewModelFactory _sourceViewModelFactory;
 
         private Func<LogRecordViewModel, bool> _lastFilter = _ => true;
@@ -42,7 +42,7 @@ namespace Scribe.Wpf
             _sourceViewModelFactory = SourceViewModelFactory;
 
             _sources      = new Dictionary<string, SourceViewModel>();
-            _sourcesCache = new SourceCache<SourceViewModel, string>(x => x.FullName);
+            _sourcesCache = new SourceCache<SourceViewModel, int>(x => x.Id);
             Sources = _sourcesCache.Connect()
                                    .AsObservableCache();
 
@@ -69,7 +69,7 @@ namespace Scribe.Wpf
             _recordsLocker.Wait();
             try
             {
-                var newItems = new List<LogRecordViewModel>();
+                var newItems   = new List<LogRecordViewModel>();
                 var newSources = new List<SourceViewModel>();
                 foreach (var record in Records)
                 {
@@ -79,25 +79,33 @@ namespace Scribe.Wpf
                         var sourcePath = new List<string> { record.Sender };
                         sourcePath.AddRange(record.Source.Split('.'));
 
-                        for (int i = sourcePath.Count - 1; i > 0; i--)
+                        var directParent = -1;
+
+                        for (var i = 1; i <= sourcePath.Count; i++)
                         {
                             var name = string.Join('.', sourcePath.Take(i));
-                            if (_sources.ContainsKey(name))
-                                break;
+                            if (_sources.TryGetValue(name, out source))
+                            {
+                                directParent = source.Id;
+                                continue;
+                            }
 
-                            var shortName = string.Join('.', sourcePath.Skip(1).Take(i - 1));
-                            var parent = _sourceViewModelFactory.CreateInstance(shortName, record.Sender);
-                            _sources.Add(name, parent);
-                            newSources.Add(parent);
+                            var nameWithoutSender = string.Join('.', sourcePath.Skip(1).Take(i - 1));
+                            source = _sourceViewModelFactory.CreateInstance(
+                                nameWithoutSender, record.Sender, directParent);
+                            directParent = source.Id;
+
+                            _sources.Add(name, source);
+                            newSources.Add(source);
                         }
-                        
-                        source = _sourceViewModelFactory.CreateInstance(record.Source, record.Sender);
-                        _sources.Add(sourceFullName, source);
-                        newSources.Add(source);
+
+                        // source = _sourceViewModelFactory.CreateInstance(record.Source, record.Sender, directParent);
+                        // _sources.Add(sourceFullName, source);
+                        // newSources.Add(source);
                     }
 
-                    var recordViewModel = new LogRecordViewModel(record.Time, source, record.Message, record.Level,
-                                                                 record.Exception);
+                    var recordViewModel = new LogRecordViewModel(record.Time, record.OriginalTime, source, record.Message,
+                                                                 record.Level, record.Exception);
 
                     newItems.Add(recordViewModel);
                 }
@@ -117,8 +125,8 @@ namespace Scribe.Wpf
 
         public bool AutoScroll { get; set; }
 
-        public ListViewModel<LogRecordViewModel>         VisibleRecords { get; }
-        public IObservableCache<SourceViewModel, string> Sources        { get; }
+        public ListViewModel<LogRecordViewModel>      VisibleRecords { get; }
+        public IObservableCache<SourceViewModel, int> Sources        { get; }
 
         public void Filter(Func<LogRecordViewModel, bool> Filter)
         {

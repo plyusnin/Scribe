@@ -52,10 +52,9 @@ namespace Scribe.Wpf.ViewModel
 
             // Binding Sources
             recordsCache.Sources.Connect()
-                        .ChangeKey(x => x.FullName)
                         .Sort(SortExpressionComparer<SourceViewModel>.Ascending(s => s.Name))
                         .ObserveOnDispatcher()
-                        .TransformToTree(x => x.ParentName)
+                        .TransformToTree(x => x.ParentId)
                         .Transform(node => new SourceNodeViewModel(node))
                         .Bind(out _sourcesObservableCollection)
                         .Subscribe();

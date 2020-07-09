@@ -276,11 +276,20 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <TreeView Grid.Row="0" ItemsSource="{Binding Sources}" FontFamily="Consolas" Name="SourcesList">
+                <TreeView Grid.Row="0" FontFamily="Consolas" ItemsSource="{Binding Sources}">
+                    <TreeView.ItemContainerStyle>
+                        <Style TargetType="{x:Type TreeViewItem}">
+                            <Setter Property="IsExpanded" Value="True"/>
+                        </Style>
+                    </TreeView.ItemContainerStyle>
                     <TreeView.ItemTemplate>
                         <HierarchicalDataTemplate DataType="{x:Type viewModel:SourceNodeViewModel}" ItemsSource="{Binding Children}">
-                            <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding Source.Name}" />
+                            <DockPanel>
+                                <CheckBox DockPanel.Dock="Left" IsChecked="{Binding IsSelected}" Margin="2" />
+                                <TextBlock Text="{Binding Source.ShortName}" Margin="2" />
+                            </DockPanel>
                         </HierarchicalDataTemplate>
                     </TreeView.ItemTemplate>
                 </TreeView>

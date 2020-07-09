@@ -2,11 +2,8 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
 using DynamicData;
-using DynamicData.Binding;
-using DynamicData.PLinq;
 using ReactiveUI;
 using Scribe.EventsLayer;
 
@@ -14,26 +11,30 @@ namespace Scribe.Wpf.ViewModel
 {
     public class SourceViewModel : ReactiveObject
     {
+        private readonly ReadOnlyObservableCollection<LogLevelFilterViewModel> _displayLogLevels;
         private readonly ObservableAsPropertyHelper<HashSet<LogLevel>> _selectedLevels;
         private int _colorIndex;
         private bool _isSelected;
 
-        private readonly ReadOnlyObservableCollection<LogLevelFilterViewModel> _displayLogLevels;
-
-        public SourceViewModel(bool IsSelected, string Name, string ParentName, int ColorIndex, IList<LogLevel> DisabledLogLevels, string FullName)
+        public SourceViewModel(
+            int Id, bool IsSelected, string Name, int ColorIndex, IList<LogLevel> DisabledLogLevels,
+            string FullName, int ParentId, string ShortName)
         {
-            _isSelected = IsSelected;
-            _colorIndex = ColorIndex;
-            this.FullName = FullName;
-            this.ParentName = ParentName;
-            this.Name   = Name;
+            _isSelected    = IsSelected;
+            _colorIndex    = ColorIndex;
+            this.FullName  = FullName;
+            this.ParentId  = ParentId;
+            this.ShortName = ShortName;
+            this.Id        = Id;
+            this.Name      = Name;
 
             var displayLogLevelsSource = new SourceCache<LogLevelFilterViewModel, LogLevel>(x => x.Value);
 
             displayLogLevelsSource.AddOrUpdate(
                 Enum.GetValues(typeof(LogLevel))
                     .OfType<LogLevel>()
-                    .Select(level => new LogLevelFilterViewModel(level) { IsSelected = !DisabledLogLevels.Contains(level)}));
+                    .Select(level => new LogLevelFilterViewModel(level)
+                                { IsSelected = !DisabledLogLevels.Contains(level) }));
 
             displayLogLevelsSource.Connect()
                                   .ObserveOn(RxApp.MainThreadScheduler)
@@ -52,6 +53,8 @@ namespace Scribe.Wpf.ViewModel
 
         public ReadOnlyObservableCollection<LogLevelFilterViewModel> DisplayLogLevels => _displayLogLevels;
 
+        public int Id { get; }
+
         public string Name { get; }
 
         public bool IsSelected
@@ -66,12 +69,13 @@ namespace Scribe.Wpf.ViewModel
             set => this.RaiseAndSetIfChanged(ref _colorIndex, value);
         }
 
-        public string ParentName { get; }
-        public string FullName { get; }
+        public string FullName  { get; }
+        public int    ParentId  { get; }
+        public string ShortName { get; }
 
         public override string ToString()
         {
-            return FullName;
+            return $"{Id}: {FullName}   (under {ParentId})";
         }
     }
 

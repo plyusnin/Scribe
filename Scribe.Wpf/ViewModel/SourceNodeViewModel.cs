@@ -7,21 +7,30 @@ namespace Scribe.Wpf.ViewModel
 {
     public class SourceNodeViewModel : ReactiveObject
     {
-        private readonly Node<SourceViewModel, string> _node;
         private readonly ReadOnlyObservableCollection<SourceNodeViewModel> _children;
+        private readonly Node<SourceViewModel, int> _node;
         private bool _isSelected;
 
-        public SourceNodeViewModel(Node<SourceViewModel, string> Node)
+        public SourceNodeViewModel(Node<SourceViewModel, int> Node)
         {
             _node = Node;
 
-            // this.WhenAnyValue(x => x.IsSelected)
-            //     .Subscribe(selected => ApplySelection(_node, selected));
+            Source.WhenAnyValue(x => x.IsSelected)
+                  .BindTo(this, x => x.IsSelected);
+
+            this.WhenAnyValue(x => x.IsSelected)
+                .BindTo(Source, x => x.IsSelected);
 
             _node.Children.Connect()
                  .Transform(n => new SourceNodeViewModel(n))
                  .Bind(out _children)
                  .Subscribe();
+
+            // this.WhenAnyValue(x => x.IsSelected)
+            //     .Subscribe(sel =>
+            //      {
+            //          foreach (var child in Children) child.IsSelected = sel;
+            //      });
         }
 
         public ReadOnlyObservableCollection<SourceNodeViewModel> Children => _children;
@@ -33,11 +42,5 @@ namespace Scribe.Wpf.ViewModel
         }
 
         public SourceViewModel Source => _node.Item;
-
-        private static void ApplySelection(Node<SourceViewModel, string> ToNode, bool Selected)
-        {
-            ToNode.Item.IsSelected = Selected;
-            foreach (var child in ToNode.Children.Items) ApplySelection(child, Selected);
-        }
     }
 }
