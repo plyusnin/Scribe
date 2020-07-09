@@ -9,7 +9,6 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Threading;
 using DynamicData;
 using DynamicData.Binding;
 using LogList.Control.Manipulation.Implementations;
@@ -24,7 +23,6 @@ namespace Scribe.Wpf.ViewModel
     {
         private readonly ObservableAsPropertyHelper<bool> _hasExceptionToShow;
 
-        private readonly ReadOnlyObservableCollection<LogRecordViewModel> _highlightedRecords;
         private readonly ICollection<ILogFileOpener> _logFileOpeners;
 
         private readonly ObservableAsPropertyHelper<TimeSpan> _selectedInterval;
@@ -83,7 +81,8 @@ namespace Scribe.Wpf.ViewModel
             //             .ObserveOnDispatcher()
             //             .Bind(out _highlightedRecords)
             //             .Subscribe();
-            _highlightedRecords = new ReadOnlyObservableCollection<LogRecordViewModel>(new ObservableCollection<LogRecordViewModel>());
+            HighlightedRecords =
+                new ReadOnlyObservableCollection<LogRecordViewModel>(new ObservableCollection<LogRecordViewModel>());
 
             SelectedRecords = new ObservableCollection<LogRecordViewModel>();
 
@@ -114,10 +113,8 @@ namespace Scribe.Wpf.ViewModel
 
         public ProgressViewModel Progress { get; }
 
-        public IObservable<Unit> RecordsOnReset { get; }
-
         public ReactiveCommand<LogRecordViewModel, Unit>        HighlightRecord    { get; }
-        public ReadOnlyObservableCollection<LogRecordViewModel> HighlightedRecords => _highlightedRecords;
+        public ReadOnlyObservableCollection<LogRecordViewModel> HighlightedRecords { get; }
 
         public ReactiveCommand<Unit, Unit> OpenLogFile { get; }
 
@@ -162,7 +159,7 @@ namespace Scribe.Wpf.ViewModel
                              ?? throw new ApplicationException($"Файлы формата {fileExt} не поддерживаются");
 
                 Progress.IsActive = true;
-                Progress.Text = "Загрузка";
+                Progress.Text     = "Загрузка";
                 await opener.OpenFileAsync(openDialog.FileName, Cancellation, Progress).ConfigureAwait(true);
                 Progress.IsActive = false;
             }

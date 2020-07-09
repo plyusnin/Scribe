@@ -104,5 +104,10 @@ namespace Scribe.Wpf
             get => _hideLogLevels;
             set => this.RaiseAndSetIfChanged(ref _hideLogLevels, value);
         }
+
+        public override string ToString()
+        {
+            return $"{Name}, {nameof(IsEnabled)}: {IsEnabled}, {nameof(ColorIndex)}: {ColorIndex}";
+        }
     }
 }
