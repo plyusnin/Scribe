@@ -40,7 +40,8 @@ namespace Scribe.Wpf.ViewModel
         {
             _logFileOpeners = LogFileOpeners;
 
-            IRecordsCache recordsCache = new RecordsCache(SourceViewModelFactory, this.WhenAnyValue(x => x.QuickFilter));
+            IRecordsCache recordsCache =
+                new RecordsCache(SourceViewModelFactory, this.WhenAnyValue(x => x.QuickFilter));
 
             this.WhenAnyValue(x => x.AutoScroll)
                 .Subscribe(v => recordsCache.AutoScroll = v);
@@ -61,7 +62,7 @@ namespace Scribe.Wpf.ViewModel
 
             OpenLogFile = ReactiveCommand.CreateFromTask(OpenLogFileRoutine,
                                                          outputScheduler: DispatcherScheduler.Current);
-            
+
             OpenLogFile.ThrownExceptions
                        .Subscribe(e => MessageBox.Show(e.Message, "Ой!"));
 
@@ -94,7 +95,7 @@ namespace Scribe.Wpf.ViewModel
 
             SelectedRecords.ObserveCollectionChanges()
                            .Select(_ => SelectedRecords)
-                           .Select(s => s.Count > 1 ? s.Max(r => r.Time) - s.Min(r => r.Time) : TimeSpan.Zero)
+                           .Select(s => s.Count > 1 ? s.Max(r => r.OriginalTime) - s.Min(r => r.OriginalTime) : TimeSpan.Zero)
                            .ObserveOnDispatcher()
                            .ToProperty(this, x => x.SelectedInterval, out _selectedInterval);
 

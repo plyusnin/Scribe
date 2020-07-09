@@ -47,7 +47,7 @@
                         <ColumnDefinition Width="320" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="{Binding Time, StringFormat='HH:mm:ss.fff', Mode=OneTime}" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="0" Text="{Binding OriginalTime, StringFormat='HH:mm:ss.fff', Mode=OneTime}" VerticalAlignment="Center" />
                     <TextBlock Grid.Column="1" Text="{Binding Path=Level, Mode=OneTime}" VerticalAlignment="Center" />
                     <TextBlock Grid.Column="2" ToolTip="{Binding Path=Source.Name, Mode=OneTime}" Text="{Binding Path=Source.Name, Mode=OneTime}" VerticalAlignment="Center" />
                     <TextBlock Grid.Column="3" ToolTip="{Binding Message, Mode=OneTime}" Text="{Binding Message, Mode=OneTime}" VerticalAlignment="Center" />

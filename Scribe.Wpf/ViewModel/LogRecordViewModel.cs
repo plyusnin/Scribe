@@ -11,22 +11,24 @@ namespace Scribe.Wpf.ViewModel
         private bool _isHighlighted;
 
         public LogRecordViewModel(
-            DateTime Time, SourceViewModel Source, string Message, LogLevel Level,
-            string Exception)
+            DateTime Time, DateTime OriginalTime, SourceViewModel Source, string Message,
+            LogLevel Level, string Exception)
         {
-            this.Time      = Time;
-            this.Source    = Source;
-            this.Message   = Message;
-            this.Level     = Level;
-            this.Exception = Exception;
+            this.Time         = Time;
+            this.Source       = Source;
+            this.Message      = Message;
+            this.Level        = Level;
+            this.Exception    = Exception;
+            this.OriginalTime = OriginalTime;
 
             FilterString = Message;
         }
 
-        public SourceViewModel Source    { get; }
-        public string          Message   { get; }
-        public LogLevel        Level     { get; }
-        public string          Exception { get; }
+        public DateTime        OriginalTime { get; }
+        public SourceViewModel Source       { get; }
+        public string          Message      { get; }
+        public LogLevel        Level        { get; }
+        public string          Exception    { get; }
 
         public bool IsHighlighted
         {
@@ -37,5 +39,10 @@ namespace Scribe.Wpf.ViewModel
         public string FilterString { get; }
 
         public DateTime Time { get; }
+
+        public override string ToString()
+        {
+            return Message;
+        }
     }
 }
