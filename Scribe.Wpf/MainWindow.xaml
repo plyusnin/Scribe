@@ -288,7 +288,8 @@
                         <HierarchicalDataTemplate DataType="{x:Type viewModel:SourceNodeViewModel}" ItemsSource="{Binding Children}">
                             <DockPanel>
                                 <CheckBox DockPanel.Dock="Left" IsChecked="{Binding IsSelected}" Margin="2" />
-                                <TextBlock Text="{Binding Source.ShortName}" Margin="2" />
+                                <TextBlock Text="{Binding Source.ShortName}" Margin="2"
+                                           Foreground="{Binding Source.ColorIndex, Converter={StaticResource ColorConverter}}" />
                             </DockPanel>
                         </HierarchicalDataTemplate>
                     </TreeView.ItemTemplate>
