@@ -118,8 +118,6 @@ namespace Scribe.Wpf.ViewModel
             Progress = new ProgressViewModel();
         }
 
-        public TreeViewSelectionBehavior.IsChildOfPredicate SourcesTreeHierarchyPredicate => CheckSourcesTreeHierarchy;
-
         public SourceNodeViewModel SelectedSourceNode
         {
             get => _selectedSourceNode;
@@ -155,12 +153,6 @@ namespace Scribe.Wpf.ViewModel
         public ReadOnlyObservableCollection<SourceNodeViewModel> Sources => _sourcesObservableCollection;
 
         public ObservableCollection<LogRecordViewModel> SelectedRecords { get; }
-
-        private bool CheckSourcesTreeHierarchy(object nodeA, object nodeB)
-        {
-            return ((SourceNodeViewModel) nodeB).Source.FullName.StartsWith(
-                ((SourceNodeViewModel) nodeA).Source.FullName);
-        }
 
         private async Task OpenLogFileRoutine(CancellationToken Cancellation)
         {

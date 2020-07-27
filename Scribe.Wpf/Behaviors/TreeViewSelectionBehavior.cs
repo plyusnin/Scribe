@@ -17,16 +17,6 @@ namespace Scribe.Wpf.Behaviors
                                                                          .BindsTwoWayByDefault,
                                                                       OnSelectedItemChanged));
 
-        public static readonly DependencyProperty HierarchyPredicateProperty =
-            DependencyProperty.Register(nameof(HierarchyPredicate), typeof(IsChildOfPredicate),
-                                        typeof(TreeViewSelectionBehavior),
-                                        new FrameworkPropertyMetadata(null));
-
-        public static readonly DependencyProperty ExpandSelectedProperty =
-            DependencyProperty.Register(nameof(ExpandSelected), typeof(bool),
-                                        typeof(TreeViewSelectionBehavior),
-                                        new FrameworkPropertyMetadata(false));
-
         private readonly EventSetter _treeViewItemEventSetter;
         private bool _modelHandled;
 
@@ -41,20 +31,6 @@ namespace Scribe.Wpf.Behaviors
         {
             get => GetValue(SelectedItemProperty);
             set => SetValue(SelectedItemProperty, value);
-        }
-
-        // Predicate that checks if two items are hierarchically related
-        public IsChildOfPredicate HierarchyPredicate
-        {
-            get => (IsChildOfPredicate) GetValue(HierarchyPredicateProperty);
-            set => SetValue(HierarchyPredicateProperty, value);
-        }
-
-        // Should expand selected?
-        public bool ExpandSelected
-        {
-            get => (bool) GetValue(ExpandSelectedProperty);
-            set => SetValue(ExpandSelectedProperty, value);
         }
 
         private static void OnSelectedItemChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
@@ -82,16 +58,6 @@ namespace Scribe.Wpf.Behaviors
             if (SelectedItem == model && !item.IsSelected)
             {
                 item.IsSelected = true;
-                if (ExpandSelected)
-                    item.IsExpanded = true;
-            }
-            // If we find the item's parent instead - expand it
-            else
-            {
-                // If HierarchyPredicate is not set, this will always be true
-                var isParentOfModel = HierarchyPredicate?.Invoke(SelectedItem, model) ?? true;
-                if (isParentOfModel)
-                    item.IsExpanded = true;
             }
 
             // Recurse into children in case some of them are already loaded

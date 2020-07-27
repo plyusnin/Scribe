@@ -294,8 +294,7 @@
                         </HierarchicalDataTemplate>
                     </TreeView.ItemTemplate>
                     <b:Interaction.Behaviors>
-                        <behaviors:TreeViewSelectionBehavior SelectedItem="{Binding SelectedSourceNode}" ExpandSelected="False"
-                                                             HierarchyPredicate="{Binding SourcesTreeHierarchyPredicate}" />
+                        <behaviors:TreeViewSelectionBehavior SelectedItem="{Binding SelectedSourceNode}" />
                     </b:Interaction.Behaviors>
                 </TreeView>
                 <GridSplitter Grid.Row="1" ResizeDirection="Columns" Height="2" ResizeBehavior="PreviousAndNext" />
