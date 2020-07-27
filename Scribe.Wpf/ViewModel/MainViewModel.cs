@@ -16,6 +16,7 @@ using Microsoft.Win32;
 using ReactiveUI;
 using Scribe.EventsLayer;
 using Scribe.RecordsLayer;
+using Scribe.Wpf.Behaviors;
 
 namespace Scribe.Wpf.ViewModel
 {
@@ -98,7 +99,9 @@ namespace Scribe.Wpf.ViewModel
 
             SelectedRecords.ObserveCollectionChanges()
                            .Select(_ => SelectedRecords)
-                           .Select(s => s.Count > 1 ? s.Max(r => r.OriginalTime) - s.Min(r => r.OriginalTime) : TimeSpan.Zero)
+                           .Select(s => s.Count > 1
+                                       ? s.Max(r => r.OriginalTime) - s.Min(r => r.OriginalTime)
+                                       : TimeSpan.Zero)
                            .ObserveOnDispatcher()
                            .ToProperty(this, x => x.SelectedInterval, out _selectedInterval);
 
@@ -114,6 +117,8 @@ namespace Scribe.Wpf.ViewModel
 
             Progress = new ProgressViewModel();
         }
+
+        public TreeViewSelectionBehavior.IsChildOfPredicate SourcesTreeHierarchyPredicate => CheckSourcesTreeHierarchy;
 
         public SourceNodeViewModel SelectedSourceNode
         {
@@ -150,6 +155,12 @@ namespace Scribe.Wpf.ViewModel
         public ReadOnlyObservableCollection<SourceNodeViewModel> Sources => _sourcesObservableCollection;
 
         public ObservableCollection<LogRecordViewModel> SelectedRecords { get; }
+
+        private bool CheckSourcesTreeHierarchy(object nodeA, object nodeB)
+        {
+            return ((SourceNodeViewModel) nodeB).Source.FullName.StartsWith(
+                ((SourceNodeViewModel) nodeA).Source.FullName);
+        }
 
         private async Task OpenLogFileRoutine(CancellationToken Cancellation)
         {

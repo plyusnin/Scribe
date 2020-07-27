@@ -42,5 +42,10 @@ namespace Scribe.Wpf.ViewModel
         }
 
         public SourceViewModel Source => _node.Item;
+
+        public override string ToString()
+        {
+            return $"{Source}, {Children.Count} children";
+        }
     }
 }
