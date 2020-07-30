@@ -10,6 +10,7 @@ using LogList.Control.Manipulation;
 using LogList.Control.Manipulation.Implementations;
 using Scribe.RecordsLayer;
 using Scribe.Wpf.ViewModel;
+using LogRecord = Scribe.RecordsLayer.LogRecord;
 
 namespace Scribe.Wpf
 {

@@ -16,7 +16,6 @@ using Microsoft.Win32;
 using ReactiveUI;
 using Scribe.EventsLayer;
 using Scribe.RecordsLayer;
-using Scribe.Wpf.Behaviors;
 
 namespace Scribe.Wpf.ViewModel
 {
@@ -89,7 +88,6 @@ namespace Scribe.Wpf.ViewModel
             HighlightedRecords =
                 new ReadOnlyObservableCollection<LogRecordViewModel>(new ObservableCollection<LogRecordViewModel>());
 
-            SelectedRecords = new ObservableCollection<LogRecordViewModel>();
 
             Clear = ReactiveCommand.Create(() => recordsCache.Clear(),
                                            // recordsCache
@@ -97,19 +95,19 @@ namespace Scribe.Wpf.ViewModel
                                            Observable.Return(true),
                                            DispatcherScheduler.Current);
 
-            SelectedRecords.ObserveCollectionChanges()
-                           .Select(_ => SelectedRecords)
-                           .Select(s => s.Count > 1
-                                       ? s.Max(r => r.OriginalTime) - s.Min(r => r.OriginalTime)
-                                       : TimeSpan.Zero)
-                           .ObserveOnDispatcher()
-                           .ToProperty(this, x => x.SelectedInterval, out _selectedInterval);
+            Records.SelectedItems.ObserveCollectionChanges()
+                   .Select(_ => Records.SelectedItems)
+                   .Select(s => s.Count > 1
+                               ? s.Max(r => r.Item.OriginalTime) - s.Min(r => r.Item.OriginalTime)
+                               : TimeSpan.Zero)
+                   .ObserveOnDispatcher()
+                   .ToProperty(this, x => x.SelectedInterval, out _selectedInterval);
 
-            SelectedRecords.ObserveCollectionChanges()
-                           .Select(_ => SelectedRecords)
-                           .Select(sel => sel.Count == 1 ? sel[0] : null)
-                           .ObserveOnDispatcher()
-                           .ToProperty(this, x => x.SelectedRecord, out _selectedRecord);
+            Records.SelectedItems.ObserveCollectionChanges()
+                   .Select(_ => Records.SelectedItems)
+                   .Select(sel => sel.Count == 1 ? sel[0].Item : null)
+                   .ObserveOnDispatcher()
+                   .ToProperty(this, x => x.SelectedRecord, out _selectedRecord);
 
             this.WhenAnyValue(x => x.SelectedRecord)
                 .Select(x => x?.Exception != null)
@@ -151,8 +149,6 @@ namespace Scribe.Wpf.ViewModel
 
         public ListViewModel<LogRecordViewModel>                 Records { get; }
         public ReadOnlyObservableCollection<SourceNodeViewModel> Sources => _sourcesObservableCollection;
-
-        public ObservableCollection<LogRecordViewModel> SelectedRecords { get; }
 
         private async Task OpenLogFileRoutine(CancellationToken Cancellation)
         {
