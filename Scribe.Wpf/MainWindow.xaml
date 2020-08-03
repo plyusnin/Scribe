@@ -39,7 +39,7 @@
             <BooleanToVisibilityConverter x:Key="btv" />
             
             <DataTemplate x:Key="LogItemTemplate" DataType="viewModel:LogRecordViewModel">
-                <Grid x:Name="ItemRoot" MouseLeftButtonUp="ListItem_OnMouseLeftButtonUp"
+                <Grid x:Name="ItemRoot"
                       TextBlock.Foreground="{Binding Path=Source.ColorIndex, Converter={StaticResource ColorConverter}}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="100" />
@@ -255,7 +255,11 @@
                 <control:LogListBox Grid.Row="0" Name="LogBox"
                                     ItemsSource="{Binding Records}" FontFamily="Consolas"
                                     ItemTemplate="{StaticResource LogItemTemplate}">
-                                    <!-- SelectionChanged="LogBox_OnSelectionChanged" -->
+                    <control:LogListBox.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <EventSetter Event="MouseDoubleClick" Handler="ListItem_OnMouseDoubleClick" />
+                        </Style>
+                    </control:LogListBox.ItemContainerStyle>
                 </control:LogListBox>
                 <TextBox Grid.Row="1" IsReadOnly="True" FontFamily="Consolas"
                          Padding="2,5,0,5" Margin="0,2,0,0" VerticalScrollBarVisibility="Visible"

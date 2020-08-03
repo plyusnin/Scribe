@@ -55,13 +55,12 @@ namespace Scribe.Wpf
             BookmarksButton.IsChecked = false;
         }
 
-        private void ListItem_OnMouseLeftButtonUp(object Sender, MouseButtonEventArgs E)
+        private void ListItem_OnMouseDoubleClick(object Sender, MouseButtonEventArgs E)
         {
-            if (E.ClickCount == 2)
                 try
                 {
                     var item   = (ListViewItem) Sender;
-                    var record = (LogRecordViewModel) item.DataContext;
+                    var record = (LogRecordViewModel) item.Content;
 
                     _viewModel.HighlightRecord.Execute(record).Subscribe();
                 }
