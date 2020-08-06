@@ -5,6 +5,7 @@
         <UseWPF>true</UseWPF>
         <LangVersion>default</LangVersion>
         <TargetFramework>netcoreapp3.1</TargetFramework>
+        <AssemblyName>Scribe</AssemblyName>
     </PropertyGroup>
 
     <PropertyGroup>
