@@ -6,6 +6,8 @@
         <LangVersion>default</LangVersion>
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <AssemblyName>Scribe</AssemblyName>
+        <AssemblyVersion>5.0</AssemblyVersion>
+        <FileVersion>5.0</FileVersion>
     </PropertyGroup>
 
     <PropertyGroup>
