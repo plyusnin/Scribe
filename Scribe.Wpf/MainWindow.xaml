@@ -294,6 +294,12 @@
                                 <CheckBox DockPanel.Dock="Left" IsChecked="{Binding IsSelected}" Margin="2" />
                                 <TextBlock Text="{Binding Source.ShortName}" Margin="2"
                                            Foreground="{Binding Source.ColorIndex, Converter={StaticResource ColorConverter}}" />
+                                <DockPanel.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Select all" Command="{Binding SelectAll}" />
+                                        <MenuItem Header="Unselect all" Command="{Binding UnselectAll}" />
+                                    </ContextMenu>
+                                </DockPanel.ContextMenu>
                             </DockPanel>
                         </HierarchicalDataTemplate>
                     </TreeView.ItemTemplate>

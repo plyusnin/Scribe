@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Reactive;
+using System.Reactive.Concurrency;
 using DynamicData;
 using ReactiveUI;
 
@@ -31,7 +33,14 @@ namespace Scribe.Wpf.ViewModel
             //      {
             //          foreach (var child in Children) child.IsSelected = sel;
             //      });
+
+            SelectAll = ReactiveCommand.Create(() => SelectAllImpl(true), outputScheduler: DispatcherScheduler.Current);
+            UnselectAll =
+                ReactiveCommand.Create(() => SelectAllImpl(false), outputScheduler: DispatcherScheduler.Current);
         }
+
+        public ReactiveCommand<Unit, Unit> SelectAll   { get; }
+        public ReactiveCommand<Unit, Unit> UnselectAll { get; }
 
         public ReadOnlyObservableCollection<SourceNodeViewModel> Children => _children;
 
@@ -42,6 +51,12 @@ namespace Scribe.Wpf.ViewModel
         }
 
         public SourceViewModel Source => _node.Item;
+
+        private void SelectAllImpl(bool Selected)
+        {
+            IsSelected = Selected;
+            foreach (var child in _children) child.SelectAllImpl(Selected);
+        }
 
         public override string ToString()
         {
