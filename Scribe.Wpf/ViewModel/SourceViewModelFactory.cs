@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Text.RegularExpressions;
 using ReactiveUI;
 
 namespace Scribe.Wpf.ViewModel
@@ -15,7 +16,7 @@ namespace Scribe.Wpf.ViewModel
             _applicationSettings = ApplicationSettings;
         }
 
-        public SourceViewModel CreateInstance(string SourceName)
+        public SourceViewModel CreateInstance(string SourceName, string Sender)
         {
             var options = _applicationSettings.SourcesOptions?.FirstOrDefault(s => s.Name == SourceName);
             if (options == null)
@@ -24,7 +25,9 @@ namespace Scribe.Wpf.ViewModel
                 _applicationSettings.SourcesOptions.Add(options);
             }
 
-            var viewModel = new SourceViewModel(options.IsEnabled, SourceName, options.ColorIndex, options.HideLogLevels);
+            string parentName = Sender + (SourceName.Contains('.') ? SourceName.Substring(0, SourceName.LastIndexOf('.')) : string.Empty); 
+            var viewModel = new SourceViewModel(options.IsEnabled, SourceName, parentName, options.ColorIndex, options.HideLogLevels, 
+                                                Sender + (string.IsNullOrWhiteSpace(SourceName) ? string.Empty : '.' + SourceName));
             
             viewModel.WhenAnyValue(x => x.ColorIndex).BindTo(options, o => o.ColorIndex);
             viewModel.WhenAnyValue(x => x.IsSelected).BindTo(options, o => o.IsEnabled);

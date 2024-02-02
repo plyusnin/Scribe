@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using DynamicData;
+using DynamicData.Alias;
 using DynamicData.Binding;
 using LogList.Control.Manipulation.Implementations;
 using Microsoft.Win32;
@@ -27,7 +28,7 @@ namespace Scribe.Wpf.ViewModel
 
         private readonly ObservableAsPropertyHelper<TimeSpan> _selectedInterval;
         private readonly ObservableAsPropertyHelper<LogRecordViewModel> _selectedRecord;
-        private readonly ReadOnlyObservableCollection<SourceViewModel> _sourcesObservableCollection;
+        private readonly ReadOnlyObservableCollection<SourceNodeViewModel> _sourcesObservableCollection;
 
         private bool _autoScroll = true;
         private string _quickFilter;
@@ -51,8 +52,11 @@ namespace Scribe.Wpf.ViewModel
 
             // Binding Sources
             recordsCache.Sources.Connect()
+                        .ChangeKey(x => x.FullName)
                         .Sort(SortExpressionComparer<SourceViewModel>.Ascending(s => s.Name))
                         .ObserveOnDispatcher()
+                        .TransformToTree(x => x.ParentName)
+                        .Transform(node => new SourceNodeViewModel(node))
                         .Bind(out _sourcesObservableCollection)
                         .Subscribe();
 
@@ -137,7 +141,7 @@ namespace Scribe.Wpf.ViewModel
         }
 
         public ListViewModel<LogRecordViewModel>             Records { get; }
-        public ReadOnlyObservableCollection<SourceViewModel> Sources => _sourcesObservableCollection;
+        public ReadOnlyObservableCollection<SourceNodeViewModel> Sources => _sourcesObservableCollection;
 
         public ObservableCollection<LogRecordViewModel> SelectedRecords { get; }
 

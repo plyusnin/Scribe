@@ -35,7 +35,7 @@ namespace Scribe.EventsLayer.NLog
                 Progress.Report((double)reader.BaseStream.Position / reader.BaseStream.Length);
                 var line = await reader.ReadLineAsync().ConfigureAwait(false);
                 Progress.Report((double)reader.BaseStream.Position / reader.BaseStream.Length);
-                var nLogEvent = Deserialize(line);
+                var nLogEvent = Deserialize(line, Path.GetFileNameWithoutExtension(FileName));
                 _emitter.OnNext(nLogEvent);
             }
         }

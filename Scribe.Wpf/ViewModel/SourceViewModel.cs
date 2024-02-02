@@ -20,10 +20,12 @@ namespace Scribe.Wpf.ViewModel
 
         private readonly ReadOnlyObservableCollection<LogLevelFilterViewModel> _displayLogLevels;
 
-        public SourceViewModel(bool IsSelected, string Name, int ColorIndex, IList<LogLevel> DisabledLogLevels)
+        public SourceViewModel(bool IsSelected, string Name, string ParentName, int ColorIndex, IList<LogLevel> DisabledLogLevels, string FullName)
         {
             _isSelected = IsSelected;
             _colorIndex = ColorIndex;
+            this.FullName = FullName;
+            this.ParentName = ParentName;
             this.Name   = Name;
 
             var displayLogLevelsSource = new SourceCache<LogLevelFilterViewModel, LogLevel>(x => x.Value);
@@ -62,6 +64,14 @@ namespace Scribe.Wpf.ViewModel
         {
             get => _colorIndex;
             set => this.RaiseAndSetIfChanged(ref _colorIndex, value);
+        }
+
+        public string ParentName { get; }
+        public string FullName { get; }
+
+        public override string ToString()
+        {
+            return FullName;
         }
     }
 

@@ -58,7 +58,6 @@ namespace Scribe.Wpf
         private void ListItem_OnMouseLeftButtonUp(object Sender, MouseButtonEventArgs E)
         {
             if (E.ClickCount == 2)
-            {
                 try
                 {
                     var item   = (ListViewItem) Sender;
@@ -70,7 +69,6 @@ namespace Scribe.Wpf
                 {
                     Console.WriteLine(e);
                 }
-            }
         }
     }
 }

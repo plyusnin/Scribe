@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using Newtonsoft.Json;
 
 namespace Scribe.EventsLayer.NLog
@@ -7,11 +8,13 @@ namespace Scribe.EventsLayer.NLog
     {
         public abstract IObservable<NLogEvent> Source { get; }
 
-        protected NLogEvent Deserialize(string msg)
+        protected NLogEvent Deserialize(string EventText, string Sender)
         {
             try
             {
-                return JsonConvert.DeserializeObject<NLogEvent>(msg);
+                var ev = JsonConvert.DeserializeObject<NLogEvent>(EventText);
+                ev.Sender = Sender;
+                return ev;
             }
             catch (Exception e)
             {

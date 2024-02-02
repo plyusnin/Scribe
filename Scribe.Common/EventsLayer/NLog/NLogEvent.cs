@@ -13,6 +13,8 @@ namespace Scribe.EventsLayer.NLog
             this.Exception = Exception;
         }
 
+        public string Sender { get; set; }
+
         public LogLevel Level { get; }
         public string Exception { get; }
 

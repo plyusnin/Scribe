@@ -20,8 +20,8 @@ namespace Scribe.EventsLayer.NLog
             var source =
                 Observable.FromAsync(_server.ReceiveAsync)
                           .Repeat()
-                          .Select(msg => _encoding.GetString(msg.Buffer))
-                          .Select(Deserialize)
+                          .Select(msg => new { sender = msg.RemoteEndPoint.Address, message = _encoding.GetString(msg.Buffer)})
+                          .Select(x => Deserialize(x.message, x.sender.ToString()))
                           .Publish();
             Source      = source;
             _connection = source.Connect();

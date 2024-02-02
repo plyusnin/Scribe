@@ -277,20 +277,13 @@
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <ListView Grid.Row="0" ItemsSource="{Binding Sources}" FontFamily="Consolas" Name="SourcesList">
-                    <ListView.View>
-                        <GridView>
-                            <GridViewColumn>
-                                <GridViewColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <CheckBox IsChecked="{Binding IsSelected}" />
-                                    </DataTemplate>
-                                </GridViewColumn.CellTemplate>
-                            </GridViewColumn>
-                            <GridViewColumn Header="Источник" DisplayMemberBinding="{Binding Name}" Width="300" />
-                        </GridView>
-                    </ListView.View>
-                </ListView>
+                <TreeView Grid.Row="0" ItemsSource="{Binding Sources}" FontFamily="Consolas" Name="SourcesList">
+                    <TreeView.ItemTemplate>
+                        <HierarchicalDataTemplate DataType="{x:Type viewModel:SourceNodeViewModel}" ItemsSource="{Binding Children}">
+                            <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding Source.Name}" />
+                        </HierarchicalDataTemplate>
+                    </TreeView.ItemTemplate>
+                </TreeView>
                 <GridSplitter Grid.Row="1" ResizeDirection="Columns" Height="2" ResizeBehavior="PreviousAndNext" />
                 <Border Grid.Row="2" DataContext="{Binding ElementName=SourcesList, Path=SelectedItem}">
                     <Grid>

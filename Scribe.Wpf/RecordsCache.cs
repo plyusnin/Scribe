@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -41,7 +42,7 @@ namespace Scribe.Wpf
             _sourceViewModelFactory = SourceViewModelFactory;
 
             _sources      = new Dictionary<string, SourceViewModel>();
-            _sourcesCache = new SourceCache<SourceViewModel, string>(x => x.Name);
+            _sourcesCache = new SourceCache<SourceViewModel, string>(x => x.FullName);
             Sources = _sourcesCache.Connect()
                                    .AsObservableCache();
 
@@ -69,13 +70,30 @@ namespace Scribe.Wpf
             try
             {
                 var newItems = new List<LogRecordViewModel>();
+                var newSources = new List<SourceViewModel>();
                 foreach (var record in Records)
                 {
-                    if (!_sources.TryGetValue(record.Source, out var source))
+                    var sourceFullName = record.Sender + '.' + record.Source;
+                    if (!_sources.TryGetValue(sourceFullName, out var source))
                     {
-                        source = _sourceViewModelFactory.CreateInstance(record.Source);
-                        _sources.Add(source.Name, source);
-                        _sourcesCache.AddOrUpdate(source);
+                        var sourcePath = new List<string> { record.Sender };
+                        sourcePath.AddRange(record.Source.Split('.'));
+
+                        for (int i = sourcePath.Count - 1; i > 0; i--)
+                        {
+                            var name = string.Join('.', sourcePath.Take(i));
+                            if (_sources.ContainsKey(name))
+                                break;
+
+                            var shortName = string.Join('.', sourcePath.Skip(1).Take(i - 1));
+                            var parent = _sourceViewModelFactory.CreateInstance(shortName, record.Sender);
+                            _sources.Add(name, parent);
+                            newSources.Add(parent);
+                        }
+                        
+                        source = _sourceViewModelFactory.CreateInstance(record.Source, record.Sender);
+                        _sources.Add(sourceFullName, source);
+                        newSources.Add(source);
                     }
 
                     var recordViewModel = new LogRecordViewModel(record.Time, source, record.Message, record.Level,
@@ -84,6 +102,7 @@ namespace Scribe.Wpf
                     newItems.Add(recordViewModel);
                 }
 
+                _sourcesCache.AddOrUpdate(newSources);
                 VisibleRecords.Append(newItems, AutoScroll);
             }
             catch (Exception e)
